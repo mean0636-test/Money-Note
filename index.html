@@ -1,0 +1,2925 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#064e3b" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<link rel="icon" type="image/png" href="icon-192.png" />
+<script>/* កំណត់ theme មុនគូរអេក្រង់ — កុំឱ្យភ្លឹបភ្លែតពណ៌ */
+try{var _t=localStorage.getItem('khmer-expense-theme')||'auto';
+if(_t==='dark'||(_t==='auto'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)){
+  document.documentElement.dataset.theme='dark';
+}}catch(e){}</script>
+<title>សៀវភៅចំណូល-ចំណាយ</title>
+<link rel="icon" href="data:,">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Khmer:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff; --bg2:#f4f5f7; --ink:#1f2229; --muted:#8e939c; --line:#ececee;
+    --blue:#2b7be4; --red:#fc5c65; --navy:#3b4368;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0; background:var(--bg2); color:var(--ink);
+    font-family:'Noto Sans Khmer', sans-serif; font-size:14px;
+  }
+  .app{max-width:520px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column;}
+
+  /* ---------- Animations (ចលនា/Animation ទូទៅក្នុងកម្មវិធី) ---------- */
+  @keyframes rise{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;}}
+  @keyframes fadeIn{from{opacity:0;} to{opacity:1;}}
+  @keyframes bump{0%{transform:scale(1);}40%{transform:scale(1.14);}100%{transform:scale(1);}}
+  @keyframes fabIn{from{transform:scale(0) rotate(-120deg); opacity:0;} to{transform:scale(1) rotate(0); opacity:1;}}
+  @keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-5px);}75%{transform:translateX(5px);}}
+  .anim{animation:rise .4s cubic-bezier(.2,.9,.3,1) both;}
+  .bump{animation:bump .35s ease;}
+  .shake{animation:shake .3s ease;}
+
+  /* ---------- Header (របារខាងលើ៖ ខែ-ឆ្នាំ, ព្រួញប្តូរខែ, ស្លាកសមកាលកម្ម) ---------- */
+  .topbar{background:var(--bg); padding:14px 16px 0; position:sticky; top:0; z-index:15;
+    box-shadow:0 1px 0 var(--line);}
+  .monthnav{display:flex; align-items:center; justify-content:space-between;}
+  .monthnav .left{display:flex; align-items:center; gap:6px;}
+  .navarrow{
+    background:none; border:none; font-size:20px; color:var(--ink); cursor:pointer;
+    padding:6px 10px; border-radius:50%; transition:background .2s, transform .1s;
+  }
+  .navarrow:active{background:var(--bg2); transform:scale(.85);}
+  .monthtitle{font-size:19px; font-weight:700; min-width:130px; text-align:center;}
+  .iconbtns{display:flex; align-items:center; gap:14px;}
+  .iconbtns button{
+    background:none; border:none; cursor:pointer; padding:4px; font-size:17px; color:var(--ink);
+    transition:transform .3s;
+  }
+  .iconbtns button:active{transform:rotate(180deg);}
+  .syncdot{width:8px;height:8px;border-radius:50%;background:#c9ccd3;display:inline-block;
+    transition:background .3s;}
+  .syncdot.ok{background:#2ecc71;}
+  .syncdot.err{background:var(--red);}
+  .syncdot.busy{background:#f6b93b; animation:fadeIn .6s infinite alternate;}
+
+  /* ---------- Tabs (ផ្ទាំងតូច៖ ប្រចាំថ្ងៃ/ប្រតិទិន/ប្រចាំខែ/សរុប) ---------- */
+  .tabs{display:flex; margin-top:8px; position:relative;}
+  .tab{
+    flex:1; text-align:center; padding:12px 0 10px; font-size:14px; color:var(--muted);
+    border:none; background:none; cursor:pointer; font-family:inherit;
+    transition:color .25s;
+  }
+  .tab.active{color:var(--ink); font-weight:700;}
+  #tabInd{
+    position:absolute; bottom:0; height:3px; background:var(--red);
+    border-radius:3px 3px 0 0; transition:left .3s cubic-bezier(.2,.9,.3,1), width .3s;
+  }
+
+  /* ---------- Summary (របារសង្ខេប ចំណូល-ចំណាយ-សរុប ខាងលើបញ្ជី) ---------- */
+  .summary{background:var(--bg); display:flex; padding:10px 8px 14px;
+    border-bottom:8px solid var(--bg2);}
+  .sumcol{flex:1; text-align:center; min-width:0;}
+  .sumcol .lbl{font-size:13px; color:#555a63;}
+  .sumcol .val{font-size:13.5px; font-weight:600; margin-top:2px; display:inline-block;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;}
+  .val.income{color:var(--blue);}
+  .val.expense{color:var(--red);}
+
+  /* ---------- Daily list (បញ្ជីប្រតិបត្តិការប្រចាំថ្ងៃ) ---------- */
+  .content{flex:1; overflow-x:hidden; padding-bottom:160px;}
+  .dayheader{
+    background:var(--bg); display:flex; align-items:center; padding:8px 16px;
+    border-top:1px solid var(--line); border-bottom:1px solid var(--line); margin-top:10px;
+  }
+  .daynum{font-size:24px; font-weight:700; margin-right:8px;}
+  .daybadge{background:var(--muted); color:#fff; font-size:11px; padding:2px 8px;
+    border-radius:4px; margin-right:8px;}
+  .daydate{font-size:12px; color:var(--muted); flex:1;}
+  .dayinc{font-size:12.5px; color:var(--blue); font-weight:600; margin-right:14px; text-align:right;}
+  .dayexp{font-size:12.5px; color:var(--red); font-weight:600; text-align:right;}
+
+  .txrow{
+    background:var(--bg); display:flex; align-items:center; padding:13px 16px;
+    border-bottom:1px solid var(--line); cursor:pointer;
+    transition:background .2s, transform .12s;
+  }
+  .txrow:active{background:#f7f7f9; transform:scale(.985);}
+  .txicon{font-size:20px; margin-right:10px; width:28px; text-align:center;}
+  .txcatcol{width:82px; flex-shrink:0;}
+  .txcat{font-size:13px; color:var(--muted);}
+  .txmid{flex:1; min-width:0; padding-right:8px; display:flex; align-items:center; gap:8px;}
+  .txmidtext{min-width:0;}
+  .txnote{font-size:15px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .txsub{font-size:12px; color:var(--muted); margin-top:1px;}
+  .txthumb{width:38px; height:38px; border-radius:8px; object-fit:cover; flex-shrink:0;
+    box-shadow:0 1px 4px rgba(0,0,0,.15);}
+  .txamt{font-size:15px; font-weight:600; white-space:nowrap;}
+  .txamt.income{color:var(--blue);}
+  .txamt.expense{color:var(--red);}
+  .emptybox{padding:60px 20px; text-align:center; color:var(--muted); font-size:14px; line-height:2;}
+  .emptybox .big{font-size:44px; display:block; animation:bump 2s infinite;}
+
+  /* ---------- Calendar (ទិដ្ឋភាពប្រតិទិនប្រចាំខែ) ---------- */
+  .calgrid{background:var(--bg); display:grid; grid-template-columns:repeat(7,1fr);}
+  .calhead{text-align:center; font-size:11px; color:var(--muted); padding:8px 0;
+    border-bottom:1px solid var(--line);}
+  .calcell{min-height:64px; border-bottom:1px solid var(--line); border-right:1px solid var(--line);
+    padding:4px; font-size:10px; transition:background .2s;}
+  .calcell:active{background:var(--bg2);}
+  .calcell .d{font-size:12px;}
+  .calcell .ci{color:var(--blue); display:block; overflow:hidden; text-overflow:ellipsis;}
+  .calcell .ce{color:var(--red); display:block; overflow:hidden; text-overflow:ellipsis;}
+  .calcell.today .d{
+    background:var(--red); color:#fff; border-radius:50%; width:20px; height:20px;
+    display:inline-flex; align-items:center; justify-content:center;
+  }
+
+  /* ---------- Monthly / Total (បញ្ជីប្រចាំខែ និងទំព័រសរុបទាំងអស់) ---------- */
+  .mrow{background:var(--bg); display:flex; align-items:center; padding:14px 16px;
+    border-bottom:1px solid var(--line); cursor:pointer; transition:background .2s;}
+  .mrow:active{background:#f7f7f9;}
+  .mrow .mname{width:80px; font-weight:600;}
+  .mrow .mvals{flex:1; text-align:right;}
+  .mrow .mvals div{font-size:13px;}
+  .totalcard{background:var(--bg); padding:8px 16px; margin-top:10px;}
+  .totalcard .row{display:flex; justify-content:space-between; padding:12px 0;
+    border-bottom:1px solid var(--line); font-size:15px; gap:10px;}
+  .totalcard .row:last-child{border-bottom:none; font-weight:700;}
+  .totalcard .row .r{text-align:right;}
+
+  /* ---------- Stats (ទំព័រស្ថិតិ៖ ក្រាហ្វិចរង្វង់ + របារភាគរយ) ---------- */
+  .statrow{background:var(--bg); padding:12px 16px; border-bottom:1px solid var(--line);}
+  .statrow .top{display:flex; justify-content:space-between; font-size:14px; margin-bottom:6px;}
+  .statbar{height:8px; background:var(--bg2); border-radius:4px; overflow:hidden;}
+  .statbar div{height:100%; border-radius:4px; width:0; transition:width .8s cubic-bezier(.2,.9,.3,1);}
+  .stattoggle{display:flex; gap:8px; padding:12px 16px; background:var(--bg); flex-wrap:wrap;}
+  .stattoggle button{
+    flex:1; min-width:70px; padding:8px 0; border-radius:8px; border:1px solid var(--line);
+    background:var(--bg); color:var(--muted); cursor:pointer; font-family:inherit;
+    transition:all .25s;
+  }
+  .stattoggle button.on{background:var(--red); border-color:var(--red); color:#fff;
+    transform:scale(1.03);}
+  .stattoggle button.on.blue{background:var(--blue); border-color:var(--blue);}
+
+  /* ---------- FAB (ប៊ូតុងមូលបន្ថែមប្រតិបត្តិការ ជ្រុងខាងក្រោមស្តាំ) ---------- */
+  .fab{
+    position:fixed; right:20px; bottom:96px; width:60px; height:60px; border-radius:50%;
+    background:var(--red); color:#fff; border:none; font-size:30px; cursor:pointer;
+    box-shadow:0 6px 20px rgba(252,92,101,.45); z-index:20;
+    display:flex; align-items:center; justify-content:center; line-height:1;
+    animation:fabIn .5s cubic-bezier(.34,1.56,.64,1) both;
+    transition:transform .15s, box-shadow .2s;
+  }
+  .fab:active{transform:scale(.85) rotate(90deg); box-shadow:0 3px 10px rgba(252,92,101,.4);}
+
+  /* ---------- Bottom nav (របារម៉ឺនុយខាងក្រោម៖ ប្រតិបត្តិការ/ស្ថិតិ/គណនី/ផ្សេងៗ) ---------- */
+  .bottomnav{
+    position:fixed; bottom:0; left:0; right:0; background:var(--bg);
+    border-top:1px solid var(--line); z-index:30;
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  .bottomnav .inner{max-width:520px; margin:0 auto; display:flex;}
+  .navbtn{
+    flex:1; background:none; border:none; padding:10px 0 12px; cursor:pointer;
+    color:var(--muted); font-size:12px; font-family:inherit;
+    display:flex; flex-direction:column; align-items:center; gap:2px;
+    transition:color .25s;
+  }
+  .navbtn .ic{font-size:20px; transition:transform .3s cubic-bezier(.34,1.56,.64,1);}
+  .navbtn.active{color:var(--red);}
+  .navbtn.active .ic{transform:translateY(-3px) scale(1.2);}
+
+  /* ---------- Form (សន្លឹកបញ្ចូល/កែប្រតិបត្តិការ ដែលរុញឡើងពីក្រោម) ---------- */
+  .overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:50;
+    display:flex; align-items:flex-end; justify-content:center;
+    opacity:0; pointer-events:none; transition:opacity .25s;
+  }
+  .overlay.open{opacity:1; pointer-events:auto;}
+  .sheet{
+    width:100%; max-width:520px; background:var(--bg); border-radius:20px 20px 0 0;
+    padding:16px 20px 32px; max-height:90vh; overflow-y:auto;
+    transform:translateY(100%); transition:transform .35s cubic-bezier(.2,.9,.3,1);
+  }
+  .overlay.open .sheet{transform:translateY(0);}
+  .sheetgrab{width:40px; height:4px; background:var(--line); border-radius:2px; margin:0 auto 14px;}
+
+  .typetabs{display:flex; gap:8px; margin-bottom:18px;}
+  .typetab{
+    flex:1; padding:9px 0; border-radius:8px; border:1.5px solid var(--line);
+    background:var(--bg); color:var(--muted); cursor:pointer; font-size:14px; font-family:inherit;
+    transition:all .25s;
+  }
+  .typetab.on.income{border-color:var(--blue); color:var(--blue); font-weight:700;
+    box-shadow:0 2px 10px rgba(43,123,228,.18); transform:scale(1.02);}
+  .typetab.on.expense{border-color:var(--red); color:var(--red); font-weight:700;
+    box-shadow:0 2px 10px rgba(252,92,101,.18); transform:scale(1.02);}
+
+  .formrow{display:flex; align-items:center; border-bottom:1px solid var(--line);
+    padding:6px 0; min-height:52px;}
+  .formrow .flabel{width:88px; flex-shrink:0; font-size:14px; color:var(--muted);}
+  .formrow .fval{flex:1;}
+  .formrow input[type="date"]{
+    border:none; outline:none; font-family:inherit; font-size:15px; color:var(--ink);
+    background:transparent; width:100%;
+  }
+  #amountWrap{display:flex; align-items:center; gap:10px; flex:1;}
+  #amount{
+    flex:1; font-size:24px; font-weight:600; border:none; outline:none;
+    color:var(--ink); font-family:inherit; background:transparent; min-width:0;
+    border-bottom:2px solid transparent; transition:border-color .25s;
+  }
+  #amount:focus{border-bottom-color:var(--blue);}
+  .curtabs{display:flex; background:var(--navy); border-radius:8px; overflow:hidden; flex-shrink:0;}
+  .curtab{
+    padding:8px 14px; border:none; background:transparent; color:#aab; cursor:pointer;
+    font-family:inherit; font-size:14px; font-weight:600; transition:all .2s;
+  }
+  .curtab.on{background:#242b4d; color:#fff;}
+
+  .chips{display:flex; flex-wrap:wrap; gap:8px; padding:10px 0;}
+  .chip{
+    padding:8px 12px; border-radius:8px; font-size:14px; border:1px solid var(--line);
+    background:var(--bg); cursor:pointer; font-family:inherit;
+    transition:all .2s;
+  }
+  .chip:active{transform:scale(.92);}
+  .chip.selected.income{background:var(--blue); border-color:var(--blue); color:#fff;
+    transform:scale(1.05); box-shadow:0 3px 10px rgba(43,123,228,.3);}
+  .chip.selected.expense{background:var(--red); border-color:var(--red); color:#fff;
+    transform:scale(1.05); box-shadow:0 3px 10px rgba(252,92,101,.3);}
+
+  #note{
+    width:100%; font-size:15px; border:none; outline:none; font-family:inherit;
+    background:transparent; padding:4px 0;
+  }
+
+  .photoRow{display:flex; align-items:center; gap:12px; padding:10px 0;}
+  .photoBtn{
+    border:1.5px dashed var(--line); background:var(--bg2); border-radius:10px;
+    padding:12px 16px; cursor:pointer; font-family:inherit; color:var(--muted); font-size:13px;
+    transition:all .25s;
+  }
+  .photoBtn:active{transform:scale(.95); border-color:var(--red);}
+  #photoPreview{position:relative; display:none;}
+  #photoPreview img{width:64px; height:64px; border-radius:10px; object-fit:cover;
+    box-shadow:0 2px 8px rgba(0,0,0,.2); animation:rise .3s both;}
+  #photoRemove{
+    position:absolute; top:-7px; right:-7px; width:20px; height:20px; border-radius:50%;
+    background:var(--ink); color:#fff; border:none; font-size:11px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  .errmsg{font-size:12px; color:var(--red); margin:10px 0 0;}
+  .formbtns{display:flex; gap:10px; margin-top:18px;}
+  .savebtn{
+    flex:1; border:none; border-radius:10px; padding:14px 0; color:#fff;
+    font-size:15px; font-weight:600; cursor:pointer; font-family:inherit; background:var(--red);
+    transition:transform .12s, box-shadow .2s; box-shadow:0 4px 14px rgba(252,92,101,.35);
+  }
+  .savebtn:active{transform:scale(.97);}
+  .savebtn:disabled{opacity:.6;}
+  .savebtn.income{background:var(--blue); box-shadow:0 4px 14px rgba(43,123,228,.35);}
+  .deletebtn{
+    width:54px; border:1px solid var(--line); border-radius:10px; background:var(--bg);
+    color:var(--red); font-size:18px; cursor:pointer; transition:all .2s;
+  }
+  .deletebtn:active{background:#fff0f0; transform:scale(.93);}
+
+  /* ---------- More / settings (ទំព័រ "ផ្សេងៗ" — ការកំណត់ទាំងអស់) ---------- */
+  .setrow{
+    background:var(--bg); display:flex; align-items:center; justify-content:space-between;
+    padding:16px; border-bottom:1px solid var(--line); cursor:pointer; transition:background .2s;
+  }
+  .setrow:active{background:#f7f7f9;}
+  .setrow .l{font-size:15px;}
+  .setrow .r{color:var(--muted); font-size:14px;}
+
+  /* ---------- Setup (ទំព័រដំបូង សម្រាប់ភ្ជាប់ Google Sheets URL) ---------- */
+  .setup{padding:40px 20px;}
+  .setup h1{font-size:22px; margin:0 0 12px;}
+  .setup p{font-size:13px; color:var(--muted); line-height:1.7;}
+  .setup input{
+    width:100%; font-size:13px; border:1px solid var(--line); border-radius:8px;
+    padding:12px; outline:none; margin:12px 0 16px; font-family:inherit;
+  }
+  .setup button{
+    width:100%; border:none; border-radius:8px; padding:14px 0; color:#fff;
+    background:var(--red); font-size:15px; cursor:pointer; font-family:inherit;
+  }
+
+  /* ---------- Auth v5 (ទំព័រចូល/ចុះឈ្មោះគណនី — រចនាបទពណ៌ dégradé) ---------- */
+  .authwrap{
+    min-height:100vh; display:none; align-items:center; justify-content:center;
+    padding:20px; background:linear-gradient(160deg,#f4f5fb,#eef0f8);
+  }
+  .authwrap.open{display:flex;}
+  .authcard{
+    width:100%; max-width:420px; background:#fff; border:1px solid #eceef5;
+    border-radius:22px; padding:26px 24px; box-shadow:0 20px 50px rgba(80,70,229,.10);
+    animation:rise .45s cubic-bezier(.2,.9,.3,1) both; position:relative; overflow:hidden;
+  }
+  .authcard::before{
+    content:''; position:absolute; top:-70px; right:-70px; width:200px; height:200px;
+    border-radius:50%; border:20px solid #f0f1fb; opacity:.6; pointer-events:none;
+  }
+  .authtop{display:flex; align-items:flex-start; gap:12px; margin-bottom:20px; position:relative;}
+  .authlogo{
+    width:54px; height:54px; border-radius:50%; flex-shrink:0;
+    background:linear-gradient(135deg,#4f46e5,#8b5cf6); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:24px;
+    box-shadow:0 8px 20px rgba(99,102,241,.35);
+  }
+  .authtitles{flex:1; min-width:0;}
+  .authtitles h2{margin:0 0 4px; font-size:21px; font-weight:700;}
+  .authtitles p{margin:0; font-size:12.5px; color:var(--muted); line-height:1.6;}
+  .authbadge{
+    flex-shrink:0; font-size:11px; color:#4f46e5; background:#eef0ff;
+    border:1px solid #e0e3ff; border-radius:999px; padding:6px 10px; white-space:nowrap;
+  }
+  .authlabel{font-size:14px; font-weight:600; color:var(--ink); display:block; margin:16px 0 8px;}
+  .authrowx{display:flex; justify-content:space-between; align-items:center; margin-top:16px;}
+  .authrowx .authlabel{margin:0;}
+  .authlink{
+    background:none; border:none; font-family:inherit; font-size:13px; color:#4f46e5;
+    cursor:pointer; padding:0;
+  }
+  .authlink.strong{font-weight:700;}
+  .inputwrap{
+    display:flex; align-items:center; gap:8px; border:1.5px solid #e5e7f2;
+    border-radius:14px; padding:6px 10px; transition:border-color .2s, box-shadow .2s;
+    background:#fff;
+  }
+  .inputwrap:focus-within{border-color:#6366f1; box-shadow:0 0 0 4px rgba(99,102,241,.12);}
+  .inputicon{
+    width:38px; height:38px; border-radius:10px; background:#eef0ff; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:16px;
+  }
+  .authinput{
+    flex:1; min-width:0; border:none; outline:none; padding:10px 4px;
+    font-size:15px; font-family:inherit; background:transparent;
+  }
+  .eyebtn{
+    background:none; border:none; cursor:pointer; font-size:16px; color:var(--muted);
+    padding:6px; flex-shrink:0;
+  }
+  .remember{
+    display:flex; align-items:center; gap:10px; font-size:13px; color:var(--muted);
+    margin:18px 0 0; cursor:pointer; user-select:none;
+  }
+  .remember input{width:18px; height:18px; accent-color:#4f46e5;}
+  .authbtn{
+    width:100%; margin-top:18px; border:none; border-radius:14px; padding:15px 0;
+    color:#fff; font-size:15px; font-weight:700; font-family:inherit; cursor:pointer;
+    background:linear-gradient(90deg,#4f46e5,#8b5cf6);
+    box-shadow:0 10px 24px rgba(99,102,241,.35);
+    transition:transform .12s, opacity .2s, box-shadow .2s;
+  }
+  .authbtn:active{transform:scale(.98); box-shadow:0 4px 12px rgba(99,102,241,.3);}
+  .authbtn:disabled{opacity:.6;}
+  .authnote{font-size:13px; color:#27ae60; margin:12px 0 0; text-align:center;}
+  .authdivider{
+    display:flex; align-items:center; gap:12px; margin:20px 0 14px;
+    color:var(--muted); font-size:12px;
+  }
+  .authdivider::before,.authdivider::after{
+    content:''; flex:1; height:1px; background:#eceef5;
+  }
+  .socialrow{display:flex; gap:8px;}
+  .socialbtn{
+    flex:1; border:1px solid #e5e7f2; background:#fff; border-radius:12px;
+    padding:11px 0; font-family:inherit; font-size:13px; cursor:pointer; color:var(--ink);
+    transition:all .2s; white-space:nowrap;
+  }
+  .socialbtn:active{transform:scale(.96); background:#f8f9ff;}
+  .socialbtn b{font-size:14px;}
+  .authfoot{text-align:center; font-size:13px; color:var(--muted); margin:18px 0 0;}
+
+  /* ---------- Form v5 (ជួរដេកនៃសន្លឹកបញ្ចូលទិន្នន័យ ត្រូវបានរចនាឡើងវិញ) ---------- */
+  .typetabs{display:flex; gap:10px; margin-bottom:6px;}
+  .typetab{
+    flex:1; display:flex; align-items:center; gap:10px; text-align:left;
+    padding:12px; border-radius:14px; border:1.5px solid var(--line);
+    background:#fff; cursor:pointer; font-family:inherit; transition:all .25s;
+  }
+  .typetab .typeicon{
+    width:40px; height:40px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:17px; color:#fff;
+  }
+  .typetab.income .typeicon{background:linear-gradient(135deg,#3b82f6,#2b7be4);}
+  .typetab.expense .typeicon{background:linear-gradient(135deg,#fb7185,#fc5c65);}
+  .typetab .typetexts{display:flex; flex-direction:column; min-width:0;}
+  .typetab .typetexts b{font-size:15px; color:var(--ink);}
+  .typetab .typetexts small{font-size:11px; color:var(--muted); margin-top:1px;}
+  .typetab.on.income{border-color:#3b82f6; background:#f2f7ff;
+    box-shadow:0 4px 14px rgba(59,130,246,.15);}
+  .typetab.on.expense{border-color:#fc5c65; background:#fff5f5;
+    box-shadow:0 4px 14px rgba(252,92,101,.15);}
+
+  .frow{
+    display:flex; align-items:center; gap:12px;
+    border-bottom:1px solid var(--line); padding:12px 0;
+  }
+  .rowicon{
+    width:44px; height:44px; border-radius:13px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:19px;
+  }
+  .rowicon.cal{background:#eef0ff;}
+  .rowicon.money{background:#e8f8ef;}
+  .rowicon.note{background:#f3e8ff;}
+  .rowicon.clip{background:#e8f1ff;}
+  .rowmain{flex:1; min-width:0;}
+  .rowlabel{display:block; font-size:12px; color:var(--muted); margin-bottom:2px;}
+  .rowmain input{
+    width:100%; border:none; outline:none; font-family:inherit;
+    background:transparent; font-size:16px; color:var(--ink); padding:0;
+  }
+  .rowmain #amount{font-size:22px; font-weight:700; border:none;}
+  .catlabel{width:52px; flex-shrink:0; font-size:13px; color:var(--muted); padding-top:14px;}
+
+  .curtabs{
+    display:flex; background:#eef0f6; border-radius:999px; padding:3px; flex-shrink:0;
+  }
+  .curtab{
+    padding:8px 14px; border:none; border-radius:999px; background:transparent;
+    color:var(--muted); cursor:pointer; font-family:inherit; font-size:13px;
+    font-weight:700; transition:all .25s;
+  }
+  .curtab.on{
+    background:linear-gradient(90deg,#4f46e5,#6366f1); color:#fff;
+    box-shadow:0 3px 10px rgba(99,102,241,.35);
+  }
+
+  .chip{
+    padding:10px 14px; border-radius:13px; font-size:14px; border:1px solid var(--line);
+    background:#fff; cursor:pointer; font-family:inherit; transition:all .2s;
+  }
+  .photoBtn{
+    border:1.5px dashed #b9c4f5; background:#f6f8ff; border-radius:12px;
+    padding:12px 16px; cursor:pointer; font-family:inherit; color:#4f46e5; font-size:13px;
+    font-weight:600; transition:all .25s;
+  }
+  .savebtn{
+    flex:1; border:none; border-radius:14px; padding:15px 0; color:#fff;
+    font-size:15px; font-weight:700; cursor:pointer; font-family:inherit;
+    background:linear-gradient(90deg,#4f46e5,#8b5cf6);
+    box-shadow:0 10px 24px rgba(99,102,241,.35);
+    transition:transform .12s, box-shadow .2s;
+  }
+  .savebtn:active{transform:scale(.97);}
+  .savebtn:disabled{opacity:.6;}
+  .savebtn.income{background:linear-gradient(90deg,#2b7be4,#6366f1);
+    box-shadow:0 10px 24px rgba(43,123,228,.35);}
+
+  /* ---------- Reset password + Change password modal (ប្តូរពាក្យសម្ងាត់) ---------- */
+  .pwoverlay{
+    position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:70;
+    display:none; align-items:center; justify-content:center; padding:20px;
+  }
+  .pwoverlay.open{display:flex;}
+  .pwcard{max-width:400px;}
+  .pwcard h3{margin:0 0 14px; font-size:18px;}
+  .pwbtns{display:flex; gap:10px; margin-top:18px;}
+  .pwcancel{
+    flex:1; border:1px solid #e5e7f2; background:#fff; border-radius:14px;
+    padding:13px 0; font-family:inherit; font-size:14px; cursor:pointer; color:var(--muted);
+  }
+
+  /* ---------- Stats v6 (រចនាប័ទ្មក្រាហ្វិចរង្វង់សម្រាប់ទំព័រស្ថិតិ) ---------- */
+  .statsum{
+    display:flex; justify-content:space-between; gap:10px; background:var(--bg);
+    padding:12px 16px; border-bottom:1px solid var(--line); font-size:13px;
+  }
+  .statsum b{font-weight:700;}
+  .piecard{
+    background:var(--bg); border-radius:18px; margin:12px 16px; padding:16px;
+    box-shadow:0 6px 18px rgba(0,0,0,.06);
+  }
+  .pie{
+    width:220px; max-width:75%; margin:4px auto; display:block;
+    animation:pieIn .7s cubic-bezier(.2,.9,.3,1) both;
+  }
+  @keyframes pieIn{
+    from{transform:scale(.55) rotate(-25deg); opacity:0;}
+    to{transform:scale(1) rotate(0); opacity:1;}
+  }
+  .strow2{
+    display:flex; align-items:center; gap:12px; background:var(--bg);
+    margin:8px 16px; padding:11px 14px; border-radius:14px;
+    box-shadow:0 3px 10px rgba(0,0,0,.05);
+  }
+  .pctbadge{
+    min-width:48px; text-align:center; color:#fff; font-weight:700; font-size:13px;
+    border-radius:9px; padding:7px 0; flex-shrink:0;
+    box-shadow:inset 0 -3px 5px rgba(0,0,0,.18);
+  }
+  .stcat{flex:1; font-size:14px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .stamt{font-weight:700; font-size:14px; white-space:nowrap;}
+
+  /* ---------- Auth v8 — ផ្ទាំង splash ពណ៌ស្វាយ ---------- */
+  .authwrap{
+    background:linear-gradient(150deg,#4c1d95,#6d28d9 45%,#8b5cf6);
+    position:relative; overflow:hidden; flex-direction:column;
+  }
+  .authwrap::before,.authwrap::after{
+    content:''; position:absolute; border-radius:50%;
+    background:rgba(255,255,255,.08); pointer-events:none;
+  }
+  .authwrap::before{width:340px; height:340px; top:-120px; left:-120px;}
+  .authwrap::after{width:420px; height:420px; bottom:-180px; right:-160px;}
+  .splash{
+    display:none; flex-direction:column; align-items:center; text-align:center;
+    color:#fff; gap:10px; padding:20px; position:relative; z-index:1;
+    animation:rise .5s both;
+  }
+  .splashlogo{
+    width:96px; height:96px; border-radius:28px; background:#fff; color:#6d28d9;
+    font-size:44px; font-weight:800; display:flex; align-items:center; justify-content:center;
+    box-shadow:0 18px 40px rgba(0,0,0,.25); margin-bottom:8px;
+  }
+  .splash h1{margin:0; font-size:24px; font-weight:800;}
+  .splash p{margin:0 0 18px; font-size:13px; opacity:.85; max-width:280px; line-height:1.7;}
+  .getstarted{
+    width:min(280px,80vw); border:none; border-radius:999px; padding:15px 0; background:#fff;
+    color:#6d28d9; font-family:inherit; font-size:15px; font-weight:800; cursor:pointer;
+    box-shadow:0 12px 26px rgba(0,0,0,.25); transition:transform .12s;
+  }
+  .getstarted:active{transform:scale(.97);}
+  .haveacct{
+    background:none; border:none; color:#fff; opacity:.85; font-family:inherit;
+    font-size:12.5px; cursor:pointer; text-decoration:underline; margin-top:4px;
+  }
+  .authcard{position:relative; z-index:1;}
+
+  /* ---------- Category grid v8 (ក្រឡាចត្រង្គជ្រើសប្រភេទ ក្នុងទម្រង់) ---------- */
+  #chips{display:grid; grid-template-columns:repeat(4,1fr); gap:12px 6px; width:100%;}
+  .cattile{
+    background:none; border:none; padding:0; cursor:pointer; font-family:inherit;
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+  }
+  .catbox{
+    width:52px; height:52px; border-radius:16px; display:flex; align-items:center;
+    justify-content:center; font-size:22px; color:#fff;
+    box-shadow:0 4px 10px rgba(0,0,0,.12); transition:all .2s;
+  }
+  .cattile:active .catbox{transform:scale(.9);}
+  .cattile.selected .catbox{
+    outline:3px solid #7c3aed; outline-offset:2px; transform:scale(1.06);
+    box-shadow:0 6px 16px rgba(124,58,237,.35);
+  }
+  .catname{font-size:11.5px; color:var(--ink);}
+  .cattile.selected .catname{font-weight:700; color:#6d28d9;}
+
+  /* ---------- Custom calendar v8 (ប្រតិទិនតូចសម្រាប់ជ្រើសកាលបរិច្ឆេទ) ---------- */
+  .calcard{max-width:340px;}
+  .calhead2{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;}
+  .calhead2 b{font-size:16px;}
+  .calnav{
+    width:36px; height:36px; border-radius:50%; border:1px solid #e5e7f2; background:#fff;
+    font-size:18px; cursor:pointer; color:var(--ink); transition:all .15s;
+  }
+  .calnav:active{background:#eef0ff; transform:scale(.9);}
+  .calweek{
+    display:grid; grid-template-columns:repeat(7,1fr); font-size:11px;
+    color:var(--muted); text-align:center; margin-bottom:6px; font-weight:600;
+  }
+  .caldays{display:grid; grid-template-columns:repeat(7,1fr); gap:4px;}
+  .calday{
+    aspect-ratio:1; border:none; background:none; border-radius:50%; cursor:pointer;
+    font-size:14px; font-family:inherit; color:var(--ink); transition:all .15s;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .calday:not(:disabled):hover{background:#eef0ff;}
+  .calday.today{border:1.5px solid #7c3aed; color:#7c3aed; font-weight:700;}
+  .calday.sel{
+    background:linear-gradient(135deg,#4f46e5,#8b5cf6); color:#fff; font-weight:700;
+    box-shadow:0 4px 10px rgba(124,58,237,.35);
+  }
+  .calfoot{display:flex; justify-content:space-between; margin-top:14px;}
+  #dateRow:active{background:#fafaff;}
+
+  /* ---------- v9: ផ្ទៃបៃតងចាស់ + រូបលុយអណ្តែត (auth screens) ---------- */
+  .authwrap{background:linear-gradient(150deg,#022c22,#065f46 45%,#0d9488);}
+  .splashlogo{color:#047857; animation:bob 3s ease-in-out infinite alternate;}
+  .getstarted{color:#047857;}
+  .authlogo{background:linear-gradient(135deg,#059669,#10b981); box-shadow:0 8px 20px rgba(16,185,129,.35);}
+  .authbadge{color:#047857; background:#ecfdf5; border-color:#d1fae5;}
+  .authlink{color:#059669;}
+  .inputwrap:focus-within{border-color:#10b981; box-shadow:0 0 0 4px rgba(16,185,129,.14);}
+  .inputicon{background:#ecfdf5;}
+  .remember input{accent-color:#059669;}
+  .authbtn{background:linear-gradient(90deg,#047857,#10b981); box-shadow:0 10px 24px rgba(16,185,129,.35);}
+  @keyframes bob{from{transform:translateY(0);}to{transform:translateY(-10px);}}
+  .floaties{position:absolute; inset:0; pointer-events:none; z-index:0;}
+  .floaties span{
+    position:absolute; font-size:28px; opacity:.22; color:#fff;
+    animation:floaty 7s ease-in-out infinite alternate;
+  }
+  @keyframes floaty{
+    from{transform:translateY(0) rotate(-8deg);}
+    to{transform:translateY(-26px) rotate(10deg);}
+  }
+  .socialbtn{display:flex; align-items:center; justify-content:center; gap:6px;}
+  .snslogo{width:16px; height:16px; flex-shrink:0;}
+
+  /* v9: អក្សរ/លេខពណ៌ស្រាលជាងមុន */
+  .txamt{font-weight:500;}
+  .dayinc,.dayexp{font-weight:500;}
+  .sumcol .val{font-weight:500;}
+  .stamt{font-weight:500;}
+  .totalcard .row:last-child{font-weight:500;}
+  .statsum b{font-weight:500;}
+
+  /* v9: កាតគណនីបែបកាតធនាគារ */
+  .acctwrap{padding:14px 16px; display:flex; flex-direction:column; gap:14px;}
+  .acctcard{
+    border-radius:20px; padding:18px; color:#fff; position:relative; overflow:hidden;
+    box-shadow:0 12px 28px rgba(0,0,0,.18);
+  }
+  .acctcard::after{
+    content:''; position:absolute; width:180px; height:180px; border-radius:50%;
+    background:rgba(255,255,255,.12); top:-70px; right:-50px;
+  }
+  .acctcard::before{
+    content:''; position:absolute; width:120px; height:120px; border-radius:50%;
+    background:rgba(255,255,255,.08); bottom:-50px; left:-30px;
+  }
+  .acctcard.khr{background:linear-gradient(135deg,#047857,#10b981);}
+  .acctcard.usd{background:linear-gradient(135deg,#1e3a8a,#4f46e5);}
+  .accttop{display:flex; justify-content:space-between; align-items:center;
+    font-size:13px; opacity:.95; position:relative; z-index:1;}
+  .acctchip{
+    width:34px; height:24px; border-radius:6px; display:inline-block;
+    background:linear-gradient(135deg,#fcd34d,#f59e0b);
+  }
+  .acctbal{font-size:26px; font-weight:600; margin:14px 0 12px; position:relative; z-index:1;}
+  .acctrows{display:flex; justify-content:space-between; font-size:12.5px;
+    opacity:.95; position:relative; z-index:1;}
+
+  /* ---------- v10: Material redesign (រចនាប័ទ្មពណ៌ថ្មី) ---------- */
+  :root{
+    --bg2:#f8f8fc; --ink:#111827; --muted:#6B7280;
+    --blue:#c59722;   /* ចំណូល = ខៀវ */
+    --red:#EF4444;    /* ចំណាយ = ក្រហម */
+    --primary:#4F46E5; --balance:#3B82F6;
+  }
+  .topbar{
+    background:linear-gradient(135deg,#4F46E5,#6366F1 60%,#818CF8);
+    box-shadow:0 8px 20px rgba(79,70,229,.25);
+  }
+  .monthtitle{color:#fff;}
+  .navarrow{color:#fff;}
+  .navarrow:active{background:rgba(255,255,255,.15);}
+  .iconbtns button{color:#fff;}
+  .tab{color:rgba(255,255,255,.75);}
+  .tab.active{color:#fff;}
+  #tabInd{background:#fff;}
+  .summary{
+    margin:12px 16px 4px; border-radius:20px; border-bottom:none;
+    padding:14px 6px; box-shadow:0 8px 20px rgba(17,24,39,.06);
+  }
+  .sumcol:nth-child(3) .val{color:var(--balance);}
+  .daycard{
+    margin:12px 16px; border-radius:20px; overflow:hidden; background:var(--bg);
+    box-shadow:0 6px 16px rgba(17,24,39,.05);
+  }
+  .daycard .dayheader{border-top:none; margin-top:0; border-bottom:1px solid var(--line);}
+  .daycard .txrow:last-child{border-bottom:none;}
+  .daybadge{background:var(--primary);}
+  .fab{
+    background:linear-gradient(135deg,#4F46E5,#6366F1);
+    box-shadow:0 10px 26px rgba(79,70,229,.45);
+  }
+  .bottomnav{box-shadow:0 -6px 18px rgba(17,24,39,.05);}
+  .navbtn{position:relative;}
+  .navbtn.active{color:var(--primary);}
+  .navbtn.active::before{
+    content:''; position:absolute; top:0; left:28%; right:28%; height:3px;
+    border-radius:0 0 4px 4px; background:var(--primary);
+  }
+  .calcell.today .d{background:var(--primary);}
+  .typetab.income .typeicon{background:linear-gradient(135deg,#4ade80,#22C55E);}
+  .typetab.on.income{
+    border-color:#22C55E; background:#f0fdf4;
+    box-shadow:0 4px 14px rgba(34,197,94,.18);
+  }
+  .savebtn.income{
+    background:linear-gradient(90deg,#16a34a,#22C55E);
+    box-shadow:0 10px 24px rgba(34,197,94,.35);
+  }
+  #stKhr.on,#stUsd.on{background:var(--primary); border-color:var(--primary);}
+  .stattoggle button.on.blue{background:#22C55E; border-color:#22C55E; transform:scale(1.03);}
+  .stattoggle{background:transparent;}
+  .statsum{
+    margin:0 16px; border-radius:16px; border-bottom:none;
+    box-shadow:0 4px 12px rgba(17,24,39,.04);
+  }
+  .piecard{border-radius:20px;}
+  .strow2{border-radius:20px; box-shadow:0 4px 14px rgba(17,24,39,.05);}
+  .mrow{
+    margin:8px 16px; border-radius:16px; border-bottom:none;
+    box-shadow:0 4px 12px rgba(17,24,39,.04);
+  }
+  .totalcard{
+    margin:12px 16px; border-radius:20px; padding:8px 16px;
+    box-shadow:0 6px 16px rgba(17,24,39,.05);
+  }
+  .setrow{
+    margin:0 16px 10px; border-radius:16px; border-bottom:none;
+    box-shadow:0 4px 12px rgba(17,24,39,.04);
+  }
+
+  /* ---------- v11: ក្បាលបៃតងចាស់ + ក្រដាសប្រាក់រៀលអណ្តែត ---------- */
+  :root{--primary:#059669;}
+  .topbar{
+    background:linear-gradient(135deg,#064e3b,#047857 55%,#10b981);
+    box-shadow:0 8px 20px rgba(6,78,59,.30);
+  }
+  .topbar>*{position:relative; z-index:1;}
+  .moneyfloat{position:absolute; inset:0; overflow:hidden; pointer-events:none; z-index:0;}
+  .moneyfloat span{position:absolute; opacity:.16; animation:drift 6s ease-in-out infinite alternate;}
+  @keyframes drift{
+    from{transform:translateY(0) rotate(-5deg);}
+    to{transform:translateY(-10px) rotate(5deg);}
+  }
+  .banknote{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:76px; height:32px; border-radius:6px; color:#fff; font-size:11px; font-weight:700;
+    border:1.5px dashed rgba(255,255,255,.7); letter-spacing:.3px;
+  }
+  .banknote.n20{background:linear-gradient(135deg,#7f9c6b,#5d7d4b);}
+  .banknote.n50{background:linear-gradient(135deg,#a3745c,#7d5741);}
+  .banknote.n100{background:linear-gradient(135deg,#3f7d53,#2d5f3e);}
+  .rielsym{font-size:30px; color:#fff; font-weight:800;}
+  .moneyfloat .noteimg{
+    position:absolute; width:88px; border-radius:6px; opacity:.32;
+    box-shadow:0 4px 12px rgba(0,0,0,.35);
+    animation:drift 6s ease-in-out infinite alternate;
+  }
+  .floaties .noteimg{
+    position:absolute; width:128px; border-radius:8px; opacity:.42;
+    box-shadow:0 8px 20px rgba(0,0,0,.35);
+    animation:floaty 7s ease-in-out infinite alternate;
+  }
+  .fab{background:linear-gradient(135deg,#047857,#10b981); box-shadow:0 10px 26px rgba(5,150,105,.45);}
+  .curtab.on{background:linear-gradient(90deg,#047857,#10b981); box-shadow:0 3px 10px rgba(16,185,129,.35);}
+  .savebtn{background:linear-gradient(90deg,#047857,#10b981); box-shadow:0 10px 24px rgba(16,185,129,.35);}
+  .savebtn.income{background:linear-gradient(90deg,#16a34a,#22C55E);}
+  .calday.sel{background:linear-gradient(135deg,#047857,#10b981); box-shadow:0 4px 10px rgba(5,150,105,.35);}
+  .cattile.selected .catbox{outline-color:#059669; box-shadow:0 6px 16px rgba(5,150,105,.35);}
+  .cattile.selected .catname{color:#047857;}
+
+  /* ---------- v13 ---------- */
+  .timeinput{
+    border:1px solid var(--line); border-radius:8px; padding:4px 8px;
+    font-family:inherit; font-size:14px; background:#fff; color:var(--ink); outline:none;
+  }
+  .timeinput:focus{border-color:#10b981;}
+  /* ៛ ជ្រើស = បៃតង, $ ជ្រើស = ខៀវ */
+  .curtab[data-cur="៛"].on{
+    background:linear-gradient(90deg,#047857,#10b981);
+    box-shadow:0 3px 10px rgba(16,185,129,.35);
+  }
+  .curtab[data-cur="$"].on{
+    background:linear-gradient(90deg,#1e40af,#3B82F6);
+    box-shadow:0 3px 10px rgba(59,130,246,.35);
+  }
+
+  /* ---------- v16: App-shell — គ្រប់ browser គ្រប់ទំហំអេក្រង់ ---------- */
+  html,body{height:100%;}
+  body{overflow:hidden;} /* រំកិលតែផ្នែកខាងក្នុង */
+  .app{
+    height:calc(var(--vh, 1vh) * 100);
+    position:relative;
+    transform:translateZ(0); /* FAB/របារក្រោម/modal នៅជាប់ក្នុងព្រំដែន app ជានិច្ច */
+    overflow:hidden;
+  }
+  #setupScreen,#authScreen,#appScreen{height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch;}
+  .authwrap{height:100%; min-height:0;}
+  #appScreen{display:flex; flex-direction:column; overflow:hidden;}
+  .content{overflow-y:auto; -webkit-overflow-scrolling:touch; padding-bottom:175px;}
+
+  /* ---------- v16: Liquid glass bottom nav (បែប iOS) ---------- */
+  .bottomnav{
+    left:10px; right:10px; bottom:10px; border-top:none;
+    background:rgba(255,255,255,.55);
+    -webkit-backdrop-filter:blur(22px) saturate(180%);
+    backdrop-filter:blur(22px) saturate(180%);
+    border:1px solid rgba(255,255,255,.65);
+    border-radius:26px;
+    box-shadow:0 10px 34px rgba(15,40,30,.18), inset 0 1px 0 rgba(255,255,255,.7);
+    padding-bottom:0; overflow:hidden;
+  }
+  .bottomnav .inner{padding:6px 8px calc(6px + env(safe-area-inset-bottom)); gap:4px;}
+  .navbtn{border-radius:18px; transition:background .25s, color .25s;}
+  .navbtn.active{background:rgba(5,150,105,.14);}
+  .navbtn.active::before{display:none;}
+  .fab{bottom:104px;}
+
+  /* ---------- v16: ចលនាអណ្តែតរលូនតាំងពីដំបូង ---------- */
+  .floaties span,.floaties img,.moneyfloat span,.moneyfloat img{will-change:transform;}
+  .splashlogo{animation-delay:-1.5s;}
+
+  /* ---------- v16: កង់ជ្រើសម៉ោង ---------- */
+  .timewheels{display:flex; align-items:center; gap:2px; margin-left:auto; position:relative; padding:0 2px;}
+  .wheelband{
+    position:absolute; left:0; right:0; top:50%; height:30px; transform:translateY(-50%);
+    background:rgba(5,150,105,.10); border-radius:10px; pointer-events:none;
+  }
+  .wheel{
+    height:90px; width:40px; overflow-y:auto; scroll-snap-type:y mandatory; position:relative;
+    scrollbar-width:none; -ms-overflow-style:none; -webkit-overflow-scrolling:touch;
+  }
+  .wheel::-webkit-scrollbar{display:none;}
+  .wheel .witem{
+    height:30px; display:flex; align-items:center; justify-content:center;
+    scroll-snap-align:center; font-size:14px; color:var(--muted);
+    transition:color .15s, font-size .15s;
+  }
+  .wheel .witem.sel{color:#047857; font-weight:700; font-size:15.5px;}
+  .wheel.ampm{width:46px;}
+  .wcolon{color:var(--muted); font-weight:700;}
+
+  /* ---------- v16: កាតគណនីក្នុងផ្ទាំង "ផ្សេងៗ" ---------- */
+  .acctprofile{
+    margin:12px 16px; padding:16px; border-radius:20px; color:#fff;
+    background:linear-gradient(135deg,#064e3b,#059669);
+    box-shadow:0 10px 26px rgba(6,78,59,.28);
+    display:flex; flex-wrap:wrap; align-items:center; gap:12px;
+  }
+  .pavatar{
+    width:52px; height:52px; border-radius:50%; background:rgba(255,255,255,.18);
+    display:flex; align-items:center; justify-content:center; font-size:26px; flex-shrink:0;
+  }
+  .pinfo{flex:1; min-width:0;}
+  .pname{font-weight:700; font-size:15px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .psub{font-size:11.5px; opacity:.85; margin-top:2px; line-height:1.5;}
+  .pbtns{display:flex; gap:8px; width:100%;}
+  .pbtn{
+    flex:1; border:1px solid rgba(255,255,255,.4); background:rgba(255,255,255,.14);
+    color:#fff; border-radius:12px; padding:10px 0; font-family:inherit; font-size:12.5px; cursor:pointer;
+    transition:background .2s;
+  }
+  .pbtn:active{background:rgba(255,255,255,.3);}
+  .pbtn.danger{background:rgba(239,68,68,.85); border-color:rgba(239,68,68,.5);}
+
+  /* ---------- v17 fixes ---------- */
+  /* កម្ពស់តាម viewport ពិត (dvh) — ការពាររបារម៉ឺនុយក្រោមកាត់ពាក់កណ្តាល */
+  @supports (height:100dvh){ .app{height:100dvh;} }
+  /* svh = ទំហំ viewport តូចបំផុត (URL bar បង្ហាញ) — ធានាមិនកាត់ម៉ឺនុយក្រោមឡើយ */
+  @supports (height:100svh){ .app{height:100svh;} }
+  .bottomnav{bottom:calc(10px + env(safe-area-inset-bottom,0px));}
+  /* តម្រង់កង់ម៉ោងឱ្យស្មើបន្ទាត់ជាមួយអក្សរថ្ងៃខែ */
+  .timewheels{margin-top:22px;}
+
+  /* ---------- v18: ទម្រង់ទូរសព្ទសុទ្ធ — ម៉ឺនុយក្រោមក្នុងលំហូរ (មិនអាចបាត់ពាក់កណ្តាលឡើយ) ---------- */
+  .bottomnav{
+    position:static; left:auto; right:auto; top:auto; bottom:auto;
+    margin:6px 10px calc(10px + env(safe-area-inset-bottom,0px));
+    flex-shrink:0;
+  }
+  .content{flex:1 1 auto; min-height:0; padding-bottom:96px;}
+  .fab{bottom:calc(100px + env(safe-area-inset-bottom,0px));}
+
+  /* ---------- v19: ផ្ទាំងចាប់ផ្តើមមិនរអិល + លាក់ scrollbar + polish ---------- */
+  /* ផ្ទាំងចាប់ផ្តើម/ចូល៖ មិនរអិលចុះឡើងតាមការអូសទេ */
+  #authScreen,#setupScreen{overflow:hidden;}
+  /* បើខ្លឹមសារវែងជាងអេក្រង់ (ឧ. ទម្រង់ចុះឈ្មោះលើទូរសព្ទតូច) ទើបអូសបានក្នុងខ្លួនវា */
+  .authwrap{overflow-y:auto; overscroll-behavior:contain;}
+  /* បិទចលនាខ្ទាតធ្លាក់ហួសគែម (overscroll bounce / pull-to-refresh) */
+  #appScreen,.content,.authwrap,.wheel{overscroll-behavior:none;}
+  /* លាក់ scrollbar ទាំងអស់ — កម្មវិធីមើលទៅស្អាត (នៅតែអូសបានធម្មតា) */
+  .content,.authwrap,#appScreen,#authScreen,#setupScreen{
+    scrollbar-width:none; -ms-overflow-style:none;
+  }
+  .content::-webkit-scrollbar,.authwrap::-webkit-scrollbar,
+  #appScreen::-webkit-scrollbar,#authScreen::-webkit-scrollbar,
+  #setupScreen::-webkit-scrollbar{display:none; width:0; height:0;}
+  /* ប៉ះឆ្លើយតបរហ័ស (បិទ delay double-tap zoom) */
+  button,.setrow,.txrow,.mrow,.navbtn,.tab,.cattile,.calday,.calcell,.curtab,.typetab{
+    touch-action:manipulation;
+  }
+  body{-webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;}
+  /* គោរពការកំណត់ "កាត់បន្ថយចលនា" របស់ឧបករណ៍ */
+  @media (prefers-reduced-motion:reduce){
+    .floaties span,.floaties img,.moneyfloat span,.moneyfloat img,.splashlogo{animation:none;}
+  }
+
+  /* ---------- v20: ស្វែងរក + ក្រាហ្វិកនិន្នាការ ---------- */
+  .searchbar{
+    display:flex; align-items:center; gap:8px; padding:10px 16px;
+    background:var(--bg); border-bottom:1px solid var(--line); flex-shrink:0;
+  }
+  .searchbar input{
+    flex:1; border:none; outline:none; background:transparent;
+    font-family:inherit; font-size:14px; color:var(--ink); min-width:0;
+  }
+  .searchbar button{
+    border:none; background:var(--bg2); color:var(--muted);
+    width:26px; height:26px; border-radius:50%; cursor:pointer; flex-shrink:0;
+  }
+  .searchhint{font-size:12px; color:var(--muted); padding:10px 16px 0;}
+  .trendcard{
+    background:var(--bg); border-radius:20px; margin:12px 16px;
+    padding:14px 14px 8px; box-shadow:0 6px 18px rgba(17,24,39,.06);
+  }
+  .trendtitle{font-size:13px; font-weight:600; margin-bottom:6px;}
+  .trendsvg{width:100%; height:auto; display:block;}
+
+  /* ---------- v20: Dark mode ---------- */
+  html[data-theme="dark"]{
+    --bg:#161b22; --bg2:#0d1117; --ink:#e6e9ee; --muted:#8b98a9; --line:#242c37;
+  }
+  html[data-theme="dark"] .authcard{background:#161b22;}
+  html[data-theme="dark"] .authcard h2,
+  html[data-theme="dark"] .pwcard h3{color:var(--ink);}
+  html[data-theme="dark"] .authinput{color:var(--ink);}
+  html[data-theme="dark"] .inputwrap{background:#0d1117; border-color:#242c37;}
+  html[data-theme="dark"] .inputicon{background:#1c2530;}
+  html[data-theme="dark"] .socialbtn,
+  html[data-theme="dark"] .pwcancel,
+  html[data-theme="dark"] .calnav,
+  html[data-theme="dark"] .timeinput{background:#1c2530; color:var(--ink); border-color:#242c37;}
+  html[data-theme="dark"] .socialbtn .snslogo path[fill="#000"]{fill:#fff;}
+  html[data-theme="dark"] .sheet{background:#161b22;}
+  html[data-theme="dark"] .bottomnav{
+    background:rgba(22,27,34,.62); border-color:rgba(255,255,255,.08);
+    box-shadow:0 10px 34px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  html[data-theme="dark"] .navbtn.active{background:rgba(16,185,129,.20);}
+  html[data-theme="dark"] .catname{color:var(--ink);}
+  html[data-theme="dark"] .calday{color:var(--ink);}
+  html[data-theme="dark"] .calday:not(:disabled):hover{background:#1c2530;}
+  html[data-theme="dark"] .wheelband{background:rgba(16,185,129,.20);}
+  html[data-theme="dark"] .wheel .witem.sel{color:#34d399;}
+  html[data-theme="dark"] .stattoggle button{background:#161b22; color:var(--muted);}
+  html[data-theme="dark"] .searchbar button{background:#1c2530;}
+  html[data-theme="dark"] .summary,html[data-theme="dark"] .daycard,
+  html[data-theme="dark"] .piecard,html[data-theme="dark"] .strow2,
+  html[data-theme="dark"] .mrow,html[data-theme="dark"] .totalcard,
+  html[data-theme="dark"] .setrow,html[data-theme="dark"] .statsum,
+  html[data-theme="dark"] .trendcard{box-shadow:0 6px 18px rgba(0,0,0,.35);}
+
+  /* Image viewer */
+  .imgviewer{
+    position:fixed; inset:0; background:rgba(0,0,0,.9); z-index:80;
+    display:none; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .imgviewer.open{display:flex; animation:fadeIn .2s;}
+  .imgviewer img{max-width:92%; max-height:85%; border-radius:10px; animation:rise .3s both;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="setup" id="setupScreen" style="display:none">
+    <h1>ភ្ជាប់ជាមួយ Google Sheets</h1>
+    <p>សូមបញ្ចូល URL របស់ Google Apps Script Web App (បញ្ចប់ដោយ <b>/exec</b>)។</p>
+    <input id="scriptUrlInput" type="url" placeholder="https://script.google.com/macros/s/XXXX/exec" />
+    <p class="errmsg" id="setupErr" style="display:none"></p>
+    <button id="connectBtn">ភ្ជាប់</button>
+  </div>
+
+  <!-- Login / Sign up -->
+  <div class="authwrap" id="authScreen">
+    <div class="floaties" aria-hidden="true">
+      <span style="top:6%; left:6%; animation-delay:-0s; font-size:52px">💵</span>
+      <span style="top:14%; right:8%; animation-delay:-1.2s; font-size:60px">🏦</span>
+      <span style="top:30%; left:12%; animation-delay:-2.6s; font-size:40px">🪙</span>
+      <span style="top:46%; left:4%; animation-delay:-2s; font-size:56px">💰</span>
+      <span style="top:38%; right:5%; animation-delay:-2.4s; font-size:48px">$</span>
+      <span style="top:58%; right:10%; animation-delay:.9s; font-size:44px">💹</span>
+      <span style="bottom:26%; right:20%; animation-delay:.6s; font-size:58px">💳</span>
+      <span style="bottom:30%; left:10%; animation-delay:-3.4s; font-size:42px">🧾</span>
+      <span style="bottom:12%; left:22%; animation-delay:-1.6s; font-size:54px">៛</span>
+      <span style="bottom:6%; right:8%; animation-delay:-2.8s; font-size:46px">💸</span>
+      <span style="top:70%; left:40%; animation-delay:-3s; font-size:38px">🪙</span>
+      <span style="top:4%; left:42%; animation-delay:-1.8s; font-size:40px">💶</span>
+      <img class="noteimg big" data-note="20" alt="" style="top:24%; left:22%; animation-delay:-2.2s">
+      <img class="noteimg big" data-note="50" alt="" style="top:52%; right:12%; animation-delay:-1.1s">
+      <img class="noteimg big" data-note="100" alt="" style="bottom:15%; left:38%; animation-delay:-3.2s">
+    </div>
+    <!-- Splash -->
+    <div class="splash" id="splashView">
+      <div class="splashlogo">៛</div>
+      <h1>សៀវភៅចំណូល-ចំណាយ</h1>
+      <p>គ្រប់គ្រងលុយកាក់របស់អ្នក ងាយស្រួល ទាន់សម័យ និងមានសុវត្ថិភាព</p>
+      <button class="getstarted" id="getStarted">ចាប់ផ្តើម</button>
+      <button class="haveacct" id="haveAcct">ខ្ញុំមានគណនីរួចហើយ</button>
+    </div>
+
+    <div class="authcard" id="loginCard">
+      <div class="authtop">
+        <div class="authlogo">👤</div>
+        <div class="authtitles">
+          <h2 id="authTitle">សូមស្វាគមន៍</h2>
+          <p id="authSub">ចូលប្រើគណនីរបស់អ្នក ដើម្បីបន្តប្រើប្រាស់</p>
+        </div>
+        <div class="authbadge">🛡️ មានសុវត្ថិភាព</div>
+      </div>
+
+      <label class="authlabel" for="authEmail">អ៊ីមែល</label>
+      <div class="inputwrap">
+        <span class="inputicon">✉️</span>
+        <input class="authinput" id="authEmail" type="email" placeholder="m@example.com" autocomplete="username">
+      </div>
+
+      <div class="authrowx">
+        <label class="authlabel" for="authPass">ពាក្យសម្ងាត់</label>
+        <button class="authlink" id="forgotBtn">ភ្លេចពាក្យសម្ងាត់?</button>
+      </div>
+      <div class="inputwrap">
+        <span class="inputicon">🔒</span>
+        <input class="authinput" id="authPass" type="password" autocomplete="current-password">
+        <button class="eyebtn" id="eyeBtn" title="បង្ហាញ/លាក់ពាក្យសម្ងាត់">👁</button>
+      </div>
+
+      <div id="confirmWrap" style="display:none">
+        <label class="authlabel" for="authPass2">បញ្ជាក់ពាក្យសម្ងាត់</label>
+        <div class="inputwrap">
+          <span class="inputicon">🔒</span>
+          <input class="authinput" id="authPass2" type="password" autocomplete="new-password">
+        </div>
+      </div>
+
+      <label class="remember">
+        <input type="checkbox" id="rememberMe" checked>
+        ចងចាំខ្ញុំ — បំពេញអ៊ីមែល និងពាក្យសម្ងាត់ស្រាប់លើកក្រោយ
+      </label>
+
+      <p class="errmsg" id="authErr" style="display:none"></p>
+      <button class="authbtn" id="authSubmit">→ ចូល</button>
+      <p class="authnote" id="authMsg" style="display:none"></p>
+
+      <div class="authdivider"><span>ឬ</span></div>
+      <div class="socialrow">
+        <button class="socialbtn" data-sns="Google">
+          <svg class="snslogo" viewBox="0 0 48 48">
+            <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3l5.7-5.7C34.5 6.1 29.5 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.2-.1-2.4-.4-3.5z"/>
+            <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3l5.7-5.7C34.5 6.1 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
+            <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/>
+            <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C41.4 36.1 44 30.9 44 24c0-1.2-.1-2.4-.4-3.5z"/>
+          </svg>
+          Google
+        </button>
+        <button class="socialbtn" data-sns="Facebook">
+          <svg class="snslogo" viewBox="0 0 24 24">
+            <path fill="#1877F2" d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.95.93-1.95 1.89v2.26h3.32l-.53 3.49h-2.79V24C19.61 23.09 24 18.1 24 12.07z"/>
+          </svg>
+          Facebook
+        </button>
+        <button class="socialbtn" data-sns="Apple">
+          <svg class="snslogo" viewBox="0 0 24 24">
+            <path fill="#000" d="M17.05 12.54c-.03-2.89 2.36-4.27 2.47-4.34-1.35-1.97-3.44-2.24-4.18-2.27-1.78-.18-3.47 1.05-4.37 1.05-.9 0-2.29-1.03-3.77-1-1.94.03-3.72 1.13-4.72 2.86-2.01 3.49-.51 8.66 1.45 11.49.96 1.39 2.1 2.95 3.6 2.89 1.45-.06 2-.93 3.75-.93s2.24.93 3.77.9c1.56-.03 2.55-1.41 3.5-2.81 1.1-1.61 1.55-3.17 1.58-3.25-.03-.01-3.03-1.16-3.08-4.59zM14.13 4.05c.8-.97 1.34-2.32 1.19-3.66-1.15.05-2.55.77-3.38 1.74-.74.86-1.39 2.23-1.22 3.55 1.29.1 2.6-.65 3.41-1.63z"/>
+          </svg>
+          Apple
+        </button>
+      </div>
+
+      <p class="authfoot">
+        <span id="authFootText">មិនទាន់មានគណនីមែនទេ?</span>
+        <button class="authlink strong" id="authSwitch">បង្កើតគណនី</button>
+      </p>
+      <p class="authfoot" style="margin-top:8px">
+        <button class="authlink" id="skipLogin">រំលង — ប្រើដោយមិនចូលគណនី (ទិន្នន័យក្នុងម៉ាស៊ីន)</button>
+      </p>
+    </div>
+
+    <!-- កំណត់ពាក្យសម្ងាត់ឡើងវិញ -->
+    <div class="authcard" id="resetCard" style="display:none">
+      <div class="authtop">
+        <div class="authlogo">🔑</div>
+        <div class="authtitles">
+          <h2>កំណត់ពាក្យសម្ងាត់ឡើងវិញ</h2>
+          <p>លេខកូដ ៦ ខ្ទង់នឹងផ្ញើទៅអ៊ីមែលដែលអ្នកបានប្រើចុះឈ្មោះ</p>
+        </div>
+      </div>
+
+      <label class="authlabel" for="resetEmail">អ៊ីមែល</label>
+      <div class="inputwrap">
+        <span class="inputicon">✉️</span>
+        <input class="authinput" id="resetEmail" type="email" placeholder="m@example.com">
+        <button class="authlink" id="sendCodeBtn" style="flex-shrink:0; padding:0 6px;">ផ្ញើលេខកូដ</button>
+      </div>
+
+      <div id="resetStep2" style="display:none">
+        <label class="authlabel" for="resetCode">លេខកូដ ៦ ខ្ទង់ (ពិនិត្យអ៊ីមែល)</label>
+        <div class="inputwrap">
+          <span class="inputicon">🔢</span>
+          <input class="authinput" id="resetCode" inputmode="numeric" maxlength="6" placeholder="123456">
+        </div>
+        <label class="authlabel" for="resetPass">ពាក្យសម្ងាត់ថ្មី</label>
+        <div class="inputwrap">
+          <span class="inputicon">🔒</span>
+          <input class="authinput" id="resetPass" type="password">
+        </div>
+        <label class="authlabel" for="resetPass2">បញ្ជាក់ពាក្យសម្ងាត់ថ្មី</label>
+        <div class="inputwrap">
+          <span class="inputicon">🔒</span>
+          <input class="authinput" id="resetPass2" type="password">
+        </div>
+        <button class="authbtn" id="confirmResetBtn">✔ ប្តូរពាក្យសម្ងាត់</button>
+      </div>
+
+      <p class="errmsg" id="resetErr" style="display:none"></p>
+      <p class="authnote" id="resetMsg" style="display:none"></p>
+      <p class="authfoot"><button class="authlink strong" id="backToLogin">← ត្រឡប់ទៅចូល</button></p>
+    </div>
+  </div>
+
+  <!-- ប្តូរពាក្យសម្ងាត់ (ក្នុងគណនី) -->
+  <div class="pwoverlay" id="pwOverlay">
+    <div class="authcard pwcard">
+      <h3>🔑 ប្តូរពាក្យសម្ងាត់</h3>
+      <label class="authlabel" for="pwOld">ពាក្យសម្ងាត់បច្ចុប្បន្ន</label>
+      <div class="inputwrap"><span class="inputicon">🔒</span>
+        <input class="authinput" id="pwOld" type="password"></div>
+      <label class="authlabel" for="pwNew">ពាក្យសម្ងាត់ថ្មី</label>
+      <div class="inputwrap"><span class="inputicon">🔒</span>
+        <input class="authinput" id="pwNew" type="password"></div>
+      <label class="authlabel" for="pwNew2">បញ្ជាក់ពាក្យសម្ងាត់ថ្មី</label>
+      <div class="inputwrap"><span class="inputicon">🔒</span>
+        <input class="authinput" id="pwNew2" type="password"></div>
+      <p class="errmsg" id="pwErr" style="display:none"></p>
+      <p class="authnote" id="pwMsg" style="display:none"></p>
+      <div class="pwbtns">
+        <button class="pwcancel" id="pwCancel">បោះបង់</button>
+        <button class="authbtn" id="pwSave" style="margin-top:0; flex:1;">រក្សាទុក</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ភ្ជាប់ / ប្តូរ URL Google Sheets -->
+  <div class="pwoverlay" id="urlOverlay">
+    <div class="authcard pwcard">
+      <h3>🔗 ភ្ជាប់ Google Sheets</h3>
+      <p style="font-size:12.5px;color:var(--muted);line-height:1.7;margin:0 0 6px;">
+        បញ្ចូល URL របស់ Google Apps Script Web App (បញ្ចប់ដោយ <b>/exec</b>)។
+        ក្រោយភ្ជាប់ អ្នកនឹងត្រូវចុះឈ្មោះ ឬចូលគណនី។
+      </p>
+      <div class="inputwrap"><span class="inputicon">🔗</span>
+        <input class="authinput" id="urlInput" type="url" placeholder="https://script.google.com/macros/s/XXXX/exec"></div>
+      <p class="errmsg" id="urlErr" style="display:none"></p>
+      <div class="pwbtns">
+        <button class="pwcancel" id="urlCancel">បោះបង់</button>
+        <button class="authbtn" id="urlSave" style="margin-top:0; flex:1;">ភ្ជាប់</button>
+      </div>
+    </div>
+  </div>
+  <input type="file" id="restoreInput" accept=".json,.csv" hidden>
+
+  <!-- ប្រតិទិនជ្រើសថ្ងៃខែ -->
+  <div class="pwoverlay" id="calOverlay">
+    <div class="authcard pwcard calcard">
+      <div class="calhead2">
+        <button class="calnav" id="calPrev">‹</button>
+        <b id="calTitle"></b>
+        <button class="calnav" id="calNext">›</button>
+      </div>
+      <div class="calweek">
+        <span>អា</span><span>ច</span><span>អ</span><span>ពុ</span><span>ព្រ</span><span>សុ</span><span>ស</span>
+      </div>
+      <div class="caldays" id="calDays"></div>
+      <div class="calfoot">
+        <button class="authlink" id="calToday">ថ្ងៃនេះ</button>
+        <button class="authlink" id="calClose" style="color:var(--muted)">បិទ</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="appScreen" style="display:none">
+    <div class="topbar">
+      <div class="moneyfloat" aria-hidden="true">
+        <img class="noteimg" data-note="20" alt="" style="top:8px; right:16%; animation-delay:.4s">
+        <img class="noteimg" data-note="50" alt="" style="bottom:6px; left:4%; animation-delay:-1.4s">
+        <img class="noteimg" data-note="100" alt="" style="top:16px; left:36%; animation-delay:-2.2s">
+        <span class="rielsym" style="top:8px; left:6%; animation-delay:-0s">៛</span>
+        <span class="rielsym" style="bottom:4px; right:5%; animation-delay:-1s">៛</span>
+      </div>
+      <div class="monthnav">
+        <div class="left">
+          <button class="navarrow" id="prevMonth">‹</button>
+          <span class="monthtitle" id="monthTitle"></span>
+          <button class="navarrow" id="nextMonth">›</button>
+        </div>
+        <div class="iconbtns">
+          <span class="syncdot" id="syncDot"></span>
+          <button id="searchBtn" title="ស្វែងរក">🔍</button>
+          <button id="refreshBtn" title="ទាញយកឡើងវិញ">⟳</button>
+        </div>
+      </div>
+      <div class="tabs" id="tabs">
+        <button class="tab active" data-tab="daily">ប្រចាំថ្ងៃ</button>
+        <button class="tab" data-tab="calendar">ប្រតិទិន</button>
+        <button class="tab" data-tab="monthly">ប្រចាំខែ</button>
+        <button class="tab" data-tab="total">សរុប</button>
+        <span id="tabInd"></span>
+      </div>
+    </div>
+
+    <div class="searchbar" id="searchBar" style="display:none">
+      <span>🔍</span>
+      <input id="searchInput" placeholder="ស្វែងរក៖ កំណត់ចំណាំ ប្រភេទ ឬចំនួន...">
+      <button id="searchClear">✕</button>
+    </div>
+
+    <div class="summary" id="summaryBar">
+      <div class="sumcol"><div class="lbl">ចំណូល</div><div class="val income" id="sumIncome">0</div></div>
+      <div class="sumcol"><div class="lbl">ចំណាយ</div><div class="val expense" id="sumExpense">0</div></div>
+      <div class="sumcol"><div class="lbl">សរុប</div><div class="val" id="sumTotal">0</div></div>
+    </div>
+
+    <div class="content" id="content"></div>
+
+    <button class="fab" id="fabBtn">＋</button>
+
+    <div class="bottomnav">
+      <div class="inner">
+        <button class="navbtn active" data-nav="trans"><span class="ic">📒</span>ប្រតិបត្តិការ</button>
+        <button class="navbtn" data-nav="stats"><span class="ic">📊</span>ស្ថិតិ</button>
+        <button class="navbtn" data-nav="accounts"><span class="ic">💳</span>គណនី</button>
+        <button class="navbtn" data-nav="more"><span class="ic">⋯</span>ផ្សេងៗ</button>
+      </div>
+    </div>
+  </div>
+
+<!-- Form -->
+<div class="overlay" id="overlay">
+  <div class="sheet">
+    <div class="sheetgrab"></div>
+    <div class="typetabs">
+      <button class="typetab income" data-type="income">
+        <span class="typeicon">⬇</span>
+        <span class="typetexts"><b>ចំណូល</b><small>គ្រប់គ្រងប្រាក់ចូល</small></span>
+      </button>
+      <button class="typetab expense" data-type="expense">
+        <span class="typeicon">⬆</span>
+        <span class="typetexts"><b>ចំណាយ</b><small>គ្រប់គ្រងប្រាក់ចេញ</small></span>
+      </button>
+    </div>
+
+    <div class="frow" id="dateRow">
+      <span class="rowicon cal">📅</span>
+      <div class="rowmain" id="dateMain" style="cursor:pointer">
+        <small class="rowlabel">ថ្ងៃខែ និងពេលវេលា</small>
+        <span id="dateDisplay" style="font-size:16px; font-weight:600;">--/--/----</span>
+        <input type="hidden" id="dateInput">
+      </div>
+      <div class="timewheels" id="timeWheels" aria-label="ជ្រើសម៉ោង">
+        <div class="wheelband"></div>
+        <div class="wheel" id="whHour"></div>
+        <span class="wcolon">:</span>
+        <div class="wheel" id="whMin"></div>
+        <div class="wheel ampm" id="whAmpm"></div>
+      </div>
+    </div>
+
+    <div class="frow">
+      <span class="rowicon money">💵</span>
+      <div class="rowmain">
+        <small class="rowlabel">ចំនួនប្រាក់</small>
+        <input id="amount" type="text" inputmode="decimal" placeholder="0.00" />
+      </div>
+      <div class="curtabs">
+        <button class="curtab" data-cur="៛">៛</button>
+        <button class="curtab" data-cur="$">$</button>
+      </div>
+    </div>
+
+    <div class="frow" style="align-items:flex-start;">
+      <span class="catlabel">ប្រភេទ</span>
+      <div class="rowmain"><div class="chips" id="chips"></div></div>
+    </div>
+
+    <div class="frow">
+      <span class="rowicon note">📝</span>
+      <div class="rowmain">
+        <small class="rowlabel">កំណត់ចំណាំ</small>
+        <input id="note" type="text" placeholder="ឧ. ទិញមី3កេស..." />
+      </div>
+    </div>
+
+    <div class="frow" style="border-bottom:none;">
+      <span class="rowicon clip">📎</span>
+      <div class="rowmain photoRow">
+        <input type="file" id="photoInput" accept="image/*" hidden>
+        <button class="photoBtn" id="photoBtn">📷 បន្ថែមរូបភាព</button>
+        <div id="photoPreview">
+          <img id="photoImg" alt="">
+          <button id="photoRemove">✕</button>
+        </div>
+      </div>
+    </div>
+
+    <p class="errmsg" id="errMsg" style="display:none"></p>
+    <div class="formbtns">
+      <button class="savebtn" id="saveBtn">រក្សាទុក</button>
+      <button class="deletebtn" id="deleteBtn" style="display:none" title="លុប">🗑</button>
+    </div>
+  </div>
+</div>
+
+<div class="imgviewer" id="imgViewer"><img id="imgViewerImg" alt=""></div>
+</div>
+
+<script>
+// កំណត់កម្ពស់ viewport ពិតប្រាកដ — ដោះស្រាយ 100vh ដែល browser នីមួយៗគណនាខុសគ្នា
+function setVh(){
+  document.documentElement.style.setProperty('--vh',(window.innerHeight*0.01)+'px');
+}
+setVh();
+window.addEventListener('resize',setVh);
+window.addEventListener('orientationchange',setVh);
+if(window.visualViewport){window.visualViewport.addEventListener('resize',setVh);}
+
+const URL_KEY='khmer-expense-script-url';
+const CACHE_KEY='khmer-expense-cache-v3';
+const KHMER_MONTHS=['មករា','កុម្ភៈ','មីនា','មេសា','ឧសភា','មិថុនា','កក្កដា','សីហា','កញ្ញា','តុលា','វិច្ឆិកា','ធ្នូ'];
+const KHMER_WEEKDAYS=['អាទិត្យ','ចន្ទ','អង្គារ','ពុធ','ព្រហ','សុក្រ','សៅរ៍'];
+const CATEGORY_ICONS={
+  // ចំណូល
+  'ប្រាក់ខែ':'💰','លក់ដូរ':'🛒','អាជីវកម្ម':'🏪','ការវិនិយោគ':'📈','អំណោយ':'🎁','ការប្រាក់':'🏦','ជំនួយ':'🤝',
+  // ចំណាយ
+  'អាហារ':'🍜','ភេសជ្ជៈ':'☕','ទំនិញផ្ទះ':'🛍️','សម្លៀកបំពាក់':'👕','ដឹកជញ្ជូន':'🚌','សាំង':'⛽',
+  'ផ្ទះ':'🏠','ភ្លើង-ទឹក':'💡','ទូរសព្ទ-Net':'📱','សុខភាព':'💊','សម្ផស្ស':'💇','ការសិក្សា':'📚',
+  'កម្សាន្ត':'🎬','ដំណើរកម្សាន្ត':'✈️','កូន':'👶','សត្វចិញ្ចឹម':'🐾','បរិច្ចាគ':'🙏','បំណុល':'💳',
+  'ផ្សេងៗ':'📦',
+};
+const INCOME_CATEGORIES=['ប្រាក់ខែ','លក់ដូរ','អាជីវកម្ម','ការវិនិយោគ','អំណោយ','ការប្រាក់','ជំនួយ','ផ្សេងៗ'];
+const EXPENSE_CATEGORIES=['អាហារ','ភេសជ្ជៈ','ទំនិញផ្ទះ','សម្លៀកបំពាក់','ដឹកជញ្ជូន','សាំង','ផ្ទះ','ភ្លើង-ទឹក','ទូរសព្ទ-Net','សុខភាព','សម្ផស្ស','ការសិក្សា','កម្សាន្ត','ដំណើរកម្សាន្ត','កូន','សត្វចិញ្ចឹម','បរិច្ចាគ','បំណុល','ផ្សេងៗ'];
+
+let scriptUrl=localStorage.getItem(URL_KEY)||'';
+let authToken=''; // token រក្សាតែក្នុង memory — ត្រូវចុច "ចូល" រាល់ពេលបើក
+let currentUser='';
+let guestMode=false; // ប្រើដោយមិនទាន់ភ្ជាប់/ចូលគណនី — ទិន្នន័យក្នុងម៉ាស៊ីន
+const LOCAL_TX_KEY='khmer-expense-local';
+const RATE_KEY='khmer-expense-rate';
+const RATE_MODE_KEY='khmer-expense-rate-auto';
+const RATE_TIME_KEY='khmer-expense-rate-time';
+let usdRate=parseFloat(localStorage.getItem(RATE_KEY))||4100; // 1$ = ?៛
+let rateAuto=localStorage.getItem(RATE_MODE_KEY)!=='off'; // លំនាំដើម៖ បើក
+// toRiel(m): បម្លែងទឹកប្រាក់ចម្រុះរូបិយប័ណ្ណ (object {'៛':.., '$':..}) ទៅជាតួលេខ៛សរុបតែមួយ តាមអត្រា usdRate
+function toRiel(m){return (m['៛']||0)+(m['$']||0)*usdRate;}
+// ទាញអត្រាពិតពីអ៊ីនធឺណិត (រៀងរាល់ ១២ ម៉ោងម្តង ឬពេលបង្ខំ)
+// fetchLiveRate(force): ទាញអត្រាប្តូរប្រាក់ $→៛ ថ្មីពីអ៊ីនធឺណិត (open.er-api.com)
+// ធ្វើម្តងរៀងរាល់ 12 ម៉ោង លុះត្រាតែ force=true ឬ rateAuto=off ទើបមិនទាញ
+async function fetchLiveRate(force){
+  if(!rateAuto)return false;
+  const last=parseInt(localStorage.getItem(RATE_TIME_KEY)||'0',10)||0;
+  if(!force&&Date.now()-last<12*3600*1000)return false;
+  try{
+    const res=await fetch('https://open.er-api.com/v6/latest/USD');
+    const data=await res.json();
+    const r=data&&data.rates&&data.rates.KHR;
+    if(r&&r>1000&&r<10000){
+      usdRate=Math.round(r);
+      localStorage.setItem(RATE_KEY,String(usdRate));
+      localStorage.setItem(RATE_TIME_KEY,String(Date.now()));
+      render();
+      return true;
+    }
+  }catch(_){}
+  return false;
+}
+const SESS_KEY='khmer-expense-session';
+const REFRESH_KEY='khmer-expense-refresh';
+// រក្សា session — refresh ១-២ ដងនៅដដែល, ដងទី ៣ ត្រឡប់ទៅផ្ទាំងដើម
+// saveSession: រក្សា session (guest/auth, token, email) ក្នុង sessionStorage ដើម្បីមិនបាច់ចូលគណនីឡើងវិញពេល refresh
+function saveSession(resetCount){
+  try{
+    sessionStorage.setItem(SESS_KEY,JSON.stringify({
+      mode:guestMode?'guest':'auth',token:authToken,email:currentUser,
+    }));
+    if(resetCount)sessionStorage.setItem(REFRESH_KEY,'0');
+  }catch(_){}
+}
+// clearSession: លុប session ចេញពី sessionStorage (ប្រើពេល logout ឬ token ផុតសុពលភាព)
+function clearSession(){
+  try{
+    sessionStorage.removeItem(SESS_KEY);
+    sessionStorage.removeItem(REFRESH_KEY);
+  }catch(_){}
+}
+let transactions=[];
+let viewMonth=new Date(); viewMonth.setDate(1);
+let activeTab='daily';
+let activeNav='trans';
+let formType='expense';
+let selectedCategory='';
+let selectedCurrency='៛';
+let photoData='';
+let editingTx=null;
+let statsType='expense';
+let statsCur='៛';
+
+// ---------- Sync (ការទាញ/ផ្ញើទិន្នន័យទៅ Google Sheets) ----------
+// setSync(status,label): ប្តូរពណ៌ចំណុចតូចៗខាងលើ (idle/busy/ok/err) ដើម្បីបង្ហាញស្ថានភាពសមកាលកម្ម
+function setSync(s,l){const d=document.getElementById('syncDot');d.className='syncdot '+s;d.title=l;}
+// fetchAll(): ទាញប្រតិបត្តិការទាំងអស់ពី Google Sheets (ឬពី localStorage បើជា guest/គ្មាន URL)
+// បើទាញបរាជ័យ នឹងប្រើទិន្នន័យ cache ចាស់ជំនួស
+async function fetchAll(){
+  if(guestMode||!scriptUrl){
+    loadLocal();
+    setSync('idle','ទិន្នន័យក្នុងម៉ាស៊ីន (មិនទាន់ភ្ជាប់)');
+    render();
+    return;
+  }
+  setSync('busy','កំពុងទាញយក...');
+  try{
+    const res=await fetch(scriptUrl+'?token='+encodeURIComponent(authToken));
+    const data=await res.json();
+    if(!data.ok){
+      if(data.error==='unauthorized'){forceLogout();return;}
+      throw new Error(data.error||'error');
+    }
+    transactions=data.transactions.sort((a,b)=>new Date(b.date)-new Date(a.date));
+    cacheSave();
+    setSync('ok','បានធ្វើសមកាលកម្ម');
+  }catch(e){
+    try{const c=localStorage.getItem(CACHE_KEY); if(c) transactions=JSON.parse(c);}catch(_){}
+    setSync('err','មិនអាចភ្ជាប់បានទេ');
+  }
+  render();
+}
+// cacheSave(): រក្សាទុកច្បាប់ចម្លងប្រតិបត្តិការក្នុង localStorage ជា cache (ដកចោលរូបភាព ដើម្បីកុំឱ្យធំពេក)
+function cacheSave(){
+  // រូបភាពអាចធំ — កុំរក្សា image ក្នុង cache ដើម្បីកុំឱ្យ localStorage ពេញ
+  try{
+    localStorage.setItem(CACHE_KEY,JSON.stringify(transactions.map(t=>({...t,image:''}))));
+  }catch(_){}
+}
+// loadLocal(): ផ្ទុកប្រតិបត្តិការពី localStorage មកដាក់ក្នុងអថេរ transactions (ប្រើពេលជា guest)
+function loadLocal(){
+  try{transactions=JSON.parse(localStorage.getItem(LOCAL_TX_KEY)||'[]');}
+  catch(_){transactions=[];}
+  transactions.sort((a,b)=>new Date(b.date)-new Date(a.date));
+}
+// saveLocal(): រក្សាទុកអថេរ transactions ទាំងអស់ចូល localStorage (ប្រើពេលជា guest)
+function saveLocal(){
+  try{localStorage.setItem(LOCAL_TX_KEY,JSON.stringify(transactions));}
+  catch(e){alert('ឃ្លាំងផ្ទុកក្នុងម៉ាស៊ីនពេញ — សូមលុបរូបភាពខ្លះ ឬភ្ជាប់ Google Sheets');}
+}
+// postToSheet(payload): ផ្ញើសំណើ (POST) ទៅ Google Apps Script URL ដើម្បី add/update/delete/login ។ល។
+// រួមភ្ជាប់ token ស្វ័យប្រវត្តិ, បោះ error បើ server ឆ្លើយថាមិនជោគជ័យ
+async function postToSheet(payload){
+  const res=await fetch(scriptUrl,{
+    method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({...payload,token:authToken}),
+  });
+  const data=await res.json();
+  if(!data.ok) throw new Error(data.error||'error');
+  return data;
+}
+
+// ---------- Helpers (មុខងារជំនួយទូទៅ) ----------
+// fm(n): បង្កើតលេខទសភាគ 2 ខ្ទង់ ជាមួយសញ្ញាក្បៀស (ឧ. 1,234.50)
+function fm(n){return Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+// fmtAmt(tx): បង្ហាញចំនួនទឹកប្រាក់ព្រមសញ្ញារូបិយប័ណ្ណ ($ ឬ ៛) របស់ប្រតិបត្តិការមួយ
+function fmtAmt(t){return (t.currency||'៛')==='$'?`$${fm(t.amount)}`:`${fm(t.amount)}៛`;}
+// sumMap(list,type): បូកសរុបចំនួនទឹកប្រាក់តាមប្រភេទ (income/expense) ញែកដោយឡែកតាមរូបិយប័ណ្ណ → {'៛':x,'$':y}
+function sumMap(list,type){
+  const m={};
+  list.filter(t=>t.type===type).forEach(t=>{const c=t.currency||'៛';m[c]=(m[c]||0)+t.amount;});
+  return m;
+}
+// diffMap(inc,exp): គណនាសមតុល្យ (ចំណូល-ចំណាយ) ញែកតាមរូបិយប័ណ្ណនីមួយៗ
+function diffMap(inc,exp){
+  const m={};
+  ['៛','$'].forEach(c=>{const v=(inc[c]||0)-(exp[c]||0); if(v!==0||inc[c]||exp[c]) m[c]=v;});
+  return m;
+}
+// fmtMap(m): បម្លែង object {'៛':x,'$':y} ទៅជាអក្សរសម្រាប់បង្ហាញ (ឧ. "5,000៛ $2.00")
+function fmtMap(m){
+  const p=[];
+  if(m['៛']!==undefined) p.push(`${fm(m['៛'])}៛`);
+  if(m['$']!==undefined) p.push(`$${fm(m['$'])}`);
+  return p.length?p.join(' '):'0';
+}
+// dateKey(d): បម្លែងកាលបរិច្ឆេទទៅជា string "YYYY-MM-DD" សម្រាប់ប្រើជា key ដាក់ក្រុម
+function dateKey(d){const t=new Date(d);return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;}
+// inMonth(d,m): ពិនិត្យថាតើកាលបរិច្ឆេទ d ស្ថិតក្នុងខែ/ឆ្នាំដូច m ដែរឬទេ
+function inMonth(d,m){const t=new Date(d);return t.getFullYear()===m.getFullYear()&&t.getMonth()===m.getMonth();}
+// monthTx(): ត្រឡប់តែប្រតិបត្តិការទាំងឡាយណាដែលស្ថិតក្នុងខែកំពុងមើល (viewMonth)
+function monthTx(){return transactions.filter(t=>inMonth(t.date,viewMonth));}
+// esc(s): បម្លែងអត្ថបទឱ្យសុវត្ថិភាពសម្រាប់ដាក់ក្នុង HTML (ការពារ XSS)
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+// stagger(container): បន្ថែម animation លេចឡើងម្តងមួយៗ (delay ជាបន្តបន្ទាប់) ដល់កូនធាតុនីមួយៗក្នុង container
+function stagger(container){
+  [...container.children].forEach((el,i)=>{
+    el.classList.add('anim');
+    el.style.animationDelay=Math.min(i*35,350)+'ms';
+  });
+}
+// bumpEl(id): ធ្វើ animation "bump" (ធំបន្តិចរួចត្រឡប់) លើ element តាម id (ប្រើពេលលេខសរុបផ្លាស់ប្តូរ)
+function bumpEl(id){
+  const el=document.getElementById(id);
+  el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+}
+
+// ----- រំញ័រថ្នមៗពេលចុចម៉ឺនុយ/ប៊ូតុង (Android; iOS Safari មិនគាំទ្រ vibration API) -----
+// buzz(): ធ្វើឱ្យទូរស័ព្ទរំញ័រតិចៗ ១២ms ពេលអ្នកប្រើចុចប៊ូតុង/ជួរដេក
+function buzz(){try{if(navigator.vibrate)navigator.vibrate(12);}catch(_){}}
+document.addEventListener('click',e=>{
+  if(e.target.closest('button,.setrow,.txrow,.mrow,.calcell'))buzz();
+},true);
+
+// ---------- បង្រួមរូបភាព ----------
+// compressImage(file): បង្រួមទំហំរូបភាពដែលថតបញ្ចូល (resize+compress ជា JPEG) មុននឹងរក្សាទុក
+// ព្យាយាមបន្ថយគុណភាព/ទំហំបន្តបន្ទាប់ រហូតតូចជាង ~45,000 តួអក្សរ (កំណត់ Google Sheet cell)
+function compressImage(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>{
+      const img=new Image();
+      img.onload=()=>{
+        const tryCompress=(maxSide,quality)=>{
+          const scale=Math.min(1,maxSide/Math.max(img.width,img.height));
+          const canvas=document.createElement('canvas');
+          canvas.width=Math.round(img.width*scale);
+          canvas.height=Math.round(img.height*scale);
+          canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+          return canvas.toDataURL('image/jpeg',quality);
+        };
+        // Google Sheet cell កំណត់ ~50,000 តួអក្សរ
+        let out=tryCompress(480,.6);
+        if(out.length>45000) out=tryCompress(360,.45);
+        if(out.length>45000) out=tryCompress(280,.35);
+        if(out.length>45000) return reject(new Error('too big'));
+        resolve(out);
+      };
+      img.onerror=reject;
+      img.src=reader.result;
+    };
+    reader.onerror=reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// ---------- Render (បង្ហាញ UI សំខាន់) ----------
+// render(): មុខងារកណ្តាល — ធ្វើបច្ចុប្បន្នភាពចំណងជើងខែ, សរុបចំណូល/ចំណាយ, រួចហៅ render រង
+// ទៅតាមផ្ទាំង (activeNav/activeTab) ដែលកំពុងបើក (ត្រូវហៅរាល់ពេលទិន្នន័យ ឬទិដ្ឋភាពផ្លាស់ប្តូរ)
+function render(){
+  document.getElementById('monthTitle').textContent=
+    `${KHMER_MONTHS[viewMonth.getMonth()]} ${viewMonth.getFullYear()}`;
+
+  const mtx=monthTx();
+  const inc=sumMap(mtx,'income'), exp=sumMap(mtx,'expense');
+  // សរុបទាំងអស់បម្លែងទៅជា ៛ (តាមអត្រាប្តូរប្រាក់)
+  document.getElementById('sumIncome').textContent=fm(toRiel(inc))+'៛';
+  document.getElementById('sumExpense').textContent=fm(toRiel(exp))+'៛';
+  document.getElementById('sumTotal').textContent=fm(toRiel(inc)-toRiel(exp))+'៛';
+  bumpEl('sumIncome'); bumpEl('sumExpense'); bumpEl('sumTotal');
+
+  const showTransUI=activeNav==='trans';
+  document.getElementById('tabs').style.display=showTransUI?'flex':'none';
+  document.getElementById('summaryBar').style.display=showTransUI?'flex':'none';
+  document.getElementById('fabBtn').style.display=showTransUI?'flex':'none';
+  if(showTransUI) requestAnimationFrame(positionTabInd);
+
+  const c=document.getElementById('content');
+  if(activeNav==='stats'){renderStats(c);return;}
+  if(activeNav==='accounts'){renderAccounts(c);return;}
+  if(activeNav==='more'){renderMore(c);return;}
+  if(activeTab==='daily') renderDaily(c);
+  else if(activeTab==='calendar') renderCalendar(c);
+  else if(activeTab==='monthly') renderMonthly(c);
+  else renderTotal(c);
+}
+
+// positionTabInd(): គណនាទីតាំង/ទទឹងបន្ទាត់ក្រហម (tabInd) ឱ្យស្របនឹងផ្ទាំងកំពុងសកម្ម
+function positionTabInd(){
+  const active=document.querySelector('.tab.active');
+  const ind=document.getElementById('tabInd');
+  if(!active) return;
+  ind.style.left=(active.offsetLeft+active.offsetWidth*0.12)+'px';
+  ind.style.width=(active.offsetWidth*0.76)+'px';
+}
+window.addEventListener('load',positionTabInd);
+window.addEventListener('resize',positionTabInd);
+
+// renderDaily(c): បង្ហាញបញ្ជីប្រតិបត្តិការក្នុងខែ ដាក់ជាក្រុមតាមថ្ងៃ (ថ្មីទៅចាស់)
+function renderDaily(c){
+  c.innerHTML='';
+  let mtx=monthTx();
+  // ស្វែងរក៖ រកគ្រប់ខែទាំងអស់ តាមកំណត់ចំណាំ ប្រភេទ ឬចំនួន
+  if(searchQuery.trim()){
+    const q=searchQuery.trim().toLowerCase();
+    const qn=q.replace(/,/g,'');
+    mtx=transactions.filter(t=>
+      (t.note||'').toLowerCase().includes(q)||
+      String(t.category).toLowerCase().includes(q)||
+      String(t.amount).includes(qn));
+    c.innerHTML=`<div class="searchhint">🔍 លទ្ធផល ${mtx.length} កំណត់ត្រា (ស្វែងរកគ្រប់ខែទាំងអស់)</div>`;
+    if(mtx.length===0){
+      c.innerHTML+=`<div class="emptybox anim"><span class="big">🔍</span>រកមិនឃើញ "${esc(searchQuery)}" ទេ</div>`;
+      return;
+    }
+  }else if(mtx.length===0){
+    c.innerHTML=`<div class="emptybox anim"><span class="big">🗒️</span>
+      មិនទាន់មានប្រតិបត្តិការក្នុងខែនេះទេ<br>ចុច ＋ ដើម្បីចាប់ផ្តើមកត់ត្រា</div>`;
+    return;
+  }
+  const groups={};
+  mtx.forEach(t=>{const k=dateKey(t.date);(groups[k]=groups[k]||[]).push(t);});
+  const keys=Object.keys(groups).sort((a,b)=>a<b?1:-1);
+  keys.forEach(k=>{
+    const list=groups[k];
+    const d=new Date(list[0].date);
+    const dInc=sumMap(list,'income'), dExp=sumMap(list,'expense');
+    const cardEl=document.createElement('div');
+    cardEl.className='daycard';
+    const head=document.createElement('div');
+    head.className='dayheader';
+    head.innerHTML=`
+      <span class="daynum">${String(d.getDate()).padStart(2,'0')}</span>
+      <span class="daybadge">${KHMER_WEEKDAYS[d.getDay()]}</span>
+      <span class="daydate">${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}</span>
+      <span class="dayinc">${fmtMap(dInc)}</span>
+      <span class="dayexp">${fmtMap(dExp)}</span>`;
+    cardEl.appendChild(head);
+    list.forEach(t=>{
+      const row=document.createElement('div');
+      row.className='txrow';
+      row.innerHTML=`
+        <span class="txicon">${CATEGORY_ICONS[t.category]||'📦'}</span>
+        <div class="txcatcol"><div class="txcat">${esc(t.category)}</div></div>
+        <div class="txmid">
+          ${t.image?`<img class="txthumb" src="${t.image}">`:''}
+          <div class="txmidtext">
+            <div class="txnote">${t.note?esc(t.note):'&nbsp;'}</div>
+            <div class="txsub">សាច់ប្រាក់</div>
+          </div>
+        </div>
+        <span class="txamt ${t.type}">${fmtAmt(t)}</span>`;
+      const thumb=row.querySelector('.txthumb');
+      if(thumb){
+        thumb.addEventListener('click',ev=>{
+          ev.stopPropagation();
+          document.getElementById('imgViewerImg').src=t.image;
+          document.getElementById('imgViewer').classList.add('open');
+        });
+      }
+      row.addEventListener('click',()=>openForm(t.type,t));
+      cardEl.appendChild(row);
+    });
+    c.appendChild(cardEl);
+  });
+  stagger(c);
+}
+
+// renderCalendar(c): បង្ហាញទិដ្ឋភាពប្រតិទិន — ក្រឡានីមួយៗបង្ហាញសរុបចំណូល/ចំណាយប្រចាំថ្ងៃ
+function renderCalendar(c){
+  c.innerHTML='';
+  const grid=document.createElement('div');
+  grid.className='calgrid anim';
+  KHMER_WEEKDAYS.forEach(w=>{
+    const h=document.createElement('div');h.className='calhead';h.textContent=w;grid.appendChild(h);
+  });
+  const y=viewMonth.getFullYear(), m=viewMonth.getMonth();
+  const first=new Date(y,m,1).getDay();
+  const daysIn=new Date(y,m+1,0).getDate();
+  const todayK=dateKey(new Date());
+  for(let i=0;i<first;i++) grid.appendChild(Object.assign(document.createElement('div'),{className:'calcell'}));
+  for(let d=1;d<=daysIn;d++){
+    const cell=document.createElement('div');
+    cell.className='calcell';
+    const k=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    if(k===todayK) cell.classList.add('today');
+    const dayTx=transactions.filter(t=>dateKey(t.date)===k);
+    const i2=sumMap(dayTx,'income'), e2=sumMap(dayTx,'expense');
+    cell.innerHTML=`<span class="d">${d}</span>
+      ${Object.keys(i2).length?`<span class="ci">${fmtMap(i2)}</span>`:''}
+      ${Object.keys(e2).length?`<span class="ce">${fmtMap(e2)}</span>`:''}`;
+    grid.appendChild(cell);
+  }
+  c.appendChild(grid);
+}
+
+// renderMonthly(c): បង្ហាញបញ្ជីសរុបចំណូល/ចំណាយ/សមតុល្យ តាមខែនីមួយៗក្នុងឆ្នាំដែលកំពុងមើល
+function renderMonthly(c){
+  c.innerHTML='';
+  const y=viewMonth.getFullYear();
+  for(let m=11;m>=0;m--){
+    const list=transactions.filter(t=>{
+      const d=new Date(t.date);return d.getFullYear()===y&&d.getMonth()===m;
+    });
+    const inc=sumMap(list,'income'), exp=sumMap(list,'expense');
+    const row=document.createElement('div');
+    row.className='mrow';
+    row.innerHTML=`
+      <span class="mname">${KHMER_MONTHS[m]}</span>
+      <div class="mvals">
+        <div style="color:var(--blue)">${fmtMap(inc)}</div>
+        <div style="color:var(--red)">${fmtMap(exp)}</div>
+        <div style="font-weight:500">${fmtMap(diffMap(inc,exp))}</div>
+      </div>`;
+    row.addEventListener('click',()=>{
+      viewMonth=new Date(y,m,1); setTab('daily');
+    });
+    c.appendChild(row);
+  }
+  stagger(c);
+}
+
+// renderTotal(c): បង្ហាញកាតសរុបចំណូល-ចំណាយ-សមតុល្យទាំងអស់ (គ្រប់ខែ) ជាមួយអត្រាប្តូរប្រាក់បច្ចុប្បន្ន
+function renderTotal(c){
+  const inc=sumMap(transactions,'income'), exp=sumMap(transactions,'expense');
+  const i=toRiel(inc), e=toRiel(exp);
+  c.innerHTML=`
+    <div class="totalcard anim">
+      <div class="row"><span>ចំណូលសរុប</span><span class="r" style="color:var(--blue)">${fm(i)}៛</span></div>
+      <div class="row"><span>ចំណាយសរុប</span><span class="r" style="color:var(--red)">${fm(e)}៛</span></div>
+      <div class="row"><span>សមតុល្យ</span><span class="r">${fm(i-e)}៛</span></div>
+      <div class="row" style="font-weight:400">
+        <span style="color:var(--muted); font-size:12px">អត្រាប្តូរប្រាក់</span>
+        <span class="r" style="color:var(--muted); font-size:12px">1$ = ${fm(usdRate)}៛</span>
+      </div>
+    </div>`;
+}
+
+// PIE_COLORS: បញ្ជីពណ៌ប្រើវេនគ្នាសម្រាប់គូរក្រាហ្វិចរង្វង់ (pie chart) តាមប្រភេទ
+const PIE_COLORS=['#f2837b','#ef9d4f','#e7c04e','#c9cf55','#8bc86a','#5fb3d9','#9b8ae0','#b0b6c1'];
+// pieSvg(items): បង្កើតកូដ SVG គូរក្រាហ្វិចរង្វង់ (pie chart) ពីបញ្ជីភាគរយ+ពណ៌ដែលបញ្ជូនមក
+function pieSvg(items){ // items: [{pct,color}] pct គិតជា %
+  let angle=-90; const cx=100,cy=100,r=92;
+  let out='';
+  items.forEach(d=>{
+    const sweep=d.pct/100*360;
+    if(sweep<=0){return;}
+    if(sweep>=359.9){
+      out+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${d.color}"/>`;
+      angle+=sweep; return;
+    }
+    const a0=angle*Math.PI/180, a1=(angle+sweep)*Math.PI/180;
+    const x0=cx+r*Math.cos(a0), y0=cy+r*Math.sin(a0);
+    const x1=cx+r*Math.cos(a1), y1=cy+r*Math.sin(a1);
+    const large=sweep>180?1:0;
+    out+=`<path d="M${cx},${cy} L${x0.toFixed(2)},${y0.toFixed(2)} A${r},${r} 0 ${large} 1 ${x1.toFixed(2)},${y1.toFixed(2)} Z" fill="${d.color}" stroke="#fff" stroke-width="2"/>`;
+    // ស្លាកភាគរយក្នុងចំណិត (បើធំល្មម)
+    if(d.pct>=8){
+      const mid=(angle+sweep/2)*Math.PI/180;
+      const tx=cx+r*0.62*Math.cos(mid), ty=cy+r*0.62*Math.sin(mid);
+      out+=`<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="11" font-weight="700" fill="#fff">${d.pct.toFixed(1)}%</text>`;
+    }
+    angle+=sweep;
+  });
+  return `<svg viewBox="0 0 200 200" class="pie">${out}</svg>`;
+}
+
+// renderStats(c): បង្ហាញទំព័រស្ថិតិ — ប៊ូតុងជ្រើសចំណូល/ចំណាយ+រូបិយប័ណ្ណ, ក្រាហ្វិចរង្វង់ និងបញ្ជីតាមប្រភេទ
+function renderStats(c){
+  const mAll=monthTx().filter(t=>(t.currency||'៛')===statsCur);
+  const mtx=mAll.filter(t=>t.type===statsType);
+  const total=mtx.reduce((s,t)=>s+t.amount,0);
+  const incTot=mAll.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const expTot=mAll.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const money=v=>statsCur==='$'?'$'+fm(v):fm(v)+'៛';
+  const byCat={};
+  mtx.forEach(t=>{byCat[t.category]=(byCat[t.category]||0)+t.amount;});
+  const cats=Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+
+  c.innerHTML=`
+    <div class="stattoggle">
+      <button class="${statsType==='expense'?'on':''}" id="stExp">ចំណាយ</button>
+      <button class="${statsType==='income'?'on blue':''}" id="stInc">ចំណូល</button>
+      <button class="${statsCur==='៛'?'on':''}" id="stKhr">៛</button>
+      <button class="${statsCur==='$'?'on':''}" id="stUsd">$</button>
+    </div>
+    <div class="statsum">
+      <span>ចំណូល <b style="color:var(--blue)">${money(incTot)}</b></span>
+      <span>ចំណាយ <b style="color:var(--red)">${money(expTot)}</b></span>
+    </div>`;
+
+  // ---------- ក្រាហ្វិកនិន្នាការប្រចាំខែ (សរុបថ្ងៃនីមួយៗ) ----------
+  if(mtx.length){
+    const yy=viewMonth.getFullYear(), mm=viewMonth.getMonth();
+    const days=new Date(yy,mm+1,0).getDate();
+    const daily=Array(days).fill(0);
+    mtx.forEach(t=>{daily[new Date(t.date).getDate()-1]+=t.amount;});
+    const maxV=Math.max.apply(null,daily.concat([1]));
+    const W=320,H=110,P=10;
+    const X=i=>days>1?P+i*(W-2*P)/(days-1):W/2;
+    const Y=v=>H-P-(v/maxV)*(H-2*P);
+    let line='';
+    daily.forEach((v,i)=>{line+=(i?' L':'M')+X(i).toFixed(1)+','+Y(v).toFixed(1);});
+    const area=line+` L${(W-P).toFixed(1)},${(H-P).toFixed(1)} L${P},${(H-P).toFixed(1)} Z`;
+    const col=statsType==='income'?'#22C55E':'#EF4444';
+    let dots='';
+    daily.forEach((v,i)=>{
+      if(v>0)dots+=`<circle cx="${X(i).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="3.2" fill="${col}" stroke="#fff" stroke-width="1.2"/>`;
+    });
+    c.innerHTML+=`
+    <div class="trendcard">
+      <div class="trendtitle">📈 និន្នាការ${statsType==='income'?'ចំណូល':'ចំណាយ'}ប្រចាំខែ (${statsCur})</div>
+      <svg viewBox="0 0 ${W} ${H+14}" class="trendsvg">
+        <defs><linearGradient id="tg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="${col}" stop-opacity=".30"/>
+          <stop offset="1" stop-color="${col}" stop-opacity="0"/>
+        </linearGradient></defs>
+        <path d="${area}" fill="url(#tg)"/>
+        <path d="${line}" fill="none" stroke="${col}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+        ${dots}
+        <text x="${P}" y="${H+10}" font-size="9" fill="#94a3b8">ថ្ងៃ 1</text>
+        <text x="${W-P}" y="${H+10}" font-size="9" fill="#94a3b8" text-anchor="end">${days}</text>
+      </svg>
+    </div>`;
+  }
+
+  if(cats.length===0){
+    c.innerHTML+='<div class="emptybox anim">គ្មានទិន្នន័យក្នុងខែនេះទេ</div>';
+  }else{
+    const items=cats.map(([cat,amt],i)=>({
+      cat:cat, amt:amt,
+      pct: total? amt/total*100 : 0,
+      color: PIE_COLORS[i%PIE_COLORS.length],
+    }));
+    const card=document.createElement('div');
+    card.className='piecard';
+    card.innerHTML=pieSvg(items);
+    c.appendChild(card);
+
+    const wrap=document.createElement('div');
+    items.forEach(d=>{
+      const row=document.createElement('div');
+      row.className='strow2';
+      row.innerHTML=`
+        <span class="pctbadge" style="background:${d.color}">${Math.round(d.pct)}%</span>
+        <span class="stcat">${CATEGORY_ICONS[d.cat]||'📦'} ${esc(d.cat)}</span>
+        <span class="stamt">${money(d.amt)}</span>`;
+      wrap.appendChild(row);
+    });
+    c.appendChild(wrap);
+    stagger(wrap);
+  }
+  document.getElementById('stExp').addEventListener('click',()=>{statsType='expense';render();});
+  document.getElementById('stInc').addEventListener('click',()=>{statsType='income';render();});
+  document.getElementById('stKhr').addEventListener('click',()=>{statsCur='៛';render();});
+  document.getElementById('stUsd').addEventListener('click',()=>{statsCur='$';render();});
+}
+
+// renderAccounts(c): បង្ហាញកាតគណនី ២ (រៀល និង ដុល្លារ) បង្ហាញសមតុល្យ ចំណូល ចំណាយសរុបនីមួយៗ
+function renderAccounts(c){
+  const inc=sumMap(transactions,'income'), exp=sumMap(transactions,'expense');
+  const bal=diffMap(inc,exp);
+  const money=(v,cur)=>cur==='$'?'$'+fm(v||0):fm(v||0)+'៛';
+  const card=(cls,cur,label)=>`
+    <div class="acctcard ${cls}">
+      <div class="accttop"><span>💳 សាច់ប្រាក់ ${label}</span><span class="acctchip"></span></div>
+      <div class="acctbal">${money(bal[cur],cur)}</div>
+      <div class="acctrows">
+        <span>↓ ចំណូល ${money(inc[cur],cur)}</span>
+        <span>↑ ចំណាយ ${money(exp[cur],cur)}</span>
+      </div>
+    </div>`;
+  c.innerHTML=`<div class="acctwrap" id="acctWrap">
+    ${card('khr','៛','(រៀល)')}
+    ${card('usd','$','(ដុល្លារ)')}
+  </div>`;
+  stagger(document.getElementById('acctWrap'));
+}
+
+// renderMore(c): បង្ហាញទំព័រ "ផ្សេងៗ" (ការកំណត់) — គណនី, ភ្ជាប់ Sheets, អត្រាប្តូរប្រាក់, Export/Import, logout
+function renderMore(c){
+  const isAuthed=!!(scriptUrl&&!guestMode&&authToken);
+  // កាតគណនី៖ ព័ត៌មានគណនី + ប្តូរពាក្យសម្ងាត់ + ចាកចេញ រួមក្នុងកន្លែងតែមួយ
+  let rows=`
+    <div class="acctprofile">
+      <div class="pavatar">${guestMode?'👤':'🧑‍💼'}</div>
+      <div class="pinfo">
+        <div class="pname">${guestMode?'អ្នកភ្ញៀវ':esc(currentUser)}</div>
+        <div class="psub">${guestMode?'មិនទាន់ចូលគណនី — ទិន្នន័យរក្សាក្នុងម៉ាស៊ីន':'បានចូលគណនី · ធ្វើសមកាលកម្មជាមួយ Google Sheets'}</div>
+      </div>
+      ${isAuthed?`
+      <div class="pbtns">
+        <button class="pbtn" id="setPw">🔑 ប្តូរពាក្យសម្ងាត់</button>
+        <button class="pbtn danger" id="setLogout">🚪 ចាកចេញ</button>
+      </div>`:''}
+    </div>`;
+  if(!scriptUrl){
+    rows+=`<div class="setrow" id="setConnect"><span class="l">🔗 ភ្ជាប់ Google Sheets</span><span class="r">›</span></div>`;
+  }else if(guestMode){
+    rows+=`<div class="setrow" id="setLogin"><span class="l">🔑 ចូល / ចុះឈ្មោះគណនី</span><span class="r">›</span></div>`;
+    rows+=`<div class="setrow" id="setConnect"><span class="l">🔗 ប្តូរ URL Google Sheets</span><span class="r">›</span></div>`;
+  }else{
+    rows+=`<div class="setrow" id="setRefresh"><span class="l">🔄 ទាញយកទិន្នន័យឡើងវិញ</span><span class="r">›</span></div>`;
+    rows+=`<div class="setrow" id="setConnect"><span class="l">🔗 ប្តូរ URL Google Sheets</span><span class="r">›</span></div>`;
+  }
+  rows+=`<div class="setrow" id="setTheme"><span class="l">🌓 រូបរាង (Theme)</span><span class="r">${THEME_LABELS[themeMode]} ›</span></div>`;
+  rows+=`<div class="setrow" id="setRate"><span class="l">💱 អត្រាប្តូរប្រាក់</span><span class="r">1$ = ${fm(usdRate)}៛ ›</span></div>`;
+  rows+=`<div class="setrow" id="setRateAuto"><span class="l">🔁 អត្រាស្វ័យប្រវត្តិ (តាមទីផ្សារ)</span><span class="r">${rateAuto?'បើក ✓':'បិទ'} ›</span></div>`;
+  rows+=`<div class="setrow" id="setCsv"><span class="l">📤 ទាញចេញជា Excel (CSV)</span><span class="r">›</span></div>`;
+  rows+=`<div class="setrow" id="setJson"><span class="l">🗄️ បម្រុងទុកទាំងអស់ (JSON)</span><span class="r">›</span></div>`;
+  rows+=`<div class="setrow" id="setRestore"><span class="l">📥 ស្តារទិន្នន័យ (Restore)</span><span class="r">›</span></div>`;
+  c.innerHTML=`<div style="margin-top:10px" id="moreList">${rows}</div>`;
+  stagger(document.getElementById('moreList'));
+
+  const on=(id,fn)=>{const el=document.getElementById(id);if(el)el.addEventListener('click',fn);};
+  on('setConnect',openUrlModal);
+  on('setTheme',()=>{
+    themeMode=themeMode==='auto'?'light':(themeMode==='light'?'dark':'auto');
+    localStorage.setItem(THEME_KEY,themeMode);
+    applyTheme();
+    render();
+  });
+  on('setRate',()=>{
+    const v=prompt('អត្រាប្តូរប្រាក់ (1$ = ?៛)\nការកំណត់ដោយដៃនឹងបិទអត្រាស្វ័យប្រវត្តិ',String(usdRate));
+    if(v===null)return;
+    const r=parseFloat(String(v).replace(/,/g,''));
+    if(!r||r<=0){alert('តម្លៃមិនត្រឹមត្រូវ');return;}
+    usdRate=r;
+    rateAuto=false;
+    localStorage.setItem(RATE_KEY,String(r));
+    localStorage.setItem(RATE_MODE_KEY,'off');
+    render();
+  });
+  on('setRateAuto',async()=>{
+    rateAuto=!rateAuto;
+    localStorage.setItem(RATE_MODE_KEY,rateAuto?'on':'off');
+    if(rateAuto){
+      const ok=await fetchLiveRate(true);
+      alert(ok
+        ?('✔ បានទាញអត្រាថ្មី៖ 1$ = '+fm(usdRate)+'៛')
+        :'មិនអាចទាញអត្រាបានទេ (ពិនិត្យអ៊ីនធឺណិត) — នឹងព្យាយាមម្តងទៀតពេលក្រោយ');
+    }
+    render();
+  });
+  on('setLogin',()=>showAuth());
+  on('setPw',openPwModal);
+  on('setRefresh',fetchAll);
+  on('setCsv',exportCsv);
+  on('setJson',exportJson);
+  on('setRestore',()=>document.getElementById('restoreInput').click());
+  // ចាកចេញ៖ ចេញទៅផ្ទាំងដើមភ្លាមៗ ដោយមិនសួរបញ្ជាក់ — token ត្រូវលុបនៅ server ក្នុងផ្ទៃខាងក្រោយ
+  on('setLogout',()=>{
+    const tok=authToken;
+    forceLogout();
+    if(tok){
+      fetch(scriptUrl,{
+        method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body:JSON.stringify({action:'logout',token:tok}),
+      }).catch(()=>{});
+    }
+  });
+}
+
+// ---------- ទាញចេញ / បម្រុងទុក / ស្តារ ----------
+// downloadBlob(content,type,name): បង្កើតឯកសារ (Blob) ហើយបង្ខំឱ្យទាញយកភ្លាមៗតាមឈ្មោះកំណត់
+function downloadBlob(content,type,name){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([content],{type:type}));
+  a.download=name;
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+}
+// exportCsv(): ទាញចេញប្រតិបត្តិការទាំងអស់ជាឯកសារ CSV (សម្រាប់បើកជាមួយ Excel)
+function exportCsv(){
+  if(!transactions.length){alert('គ្មានទិន្នន័យសម្រាប់ទាញចេញទេ');return;}
+  const head=['id','type','category','amount','note','date','currency'];
+  const lines=[head.join(',')];
+  transactions.forEach(t=>{
+    lines.push(head.map(k=>{
+      let v=String(t[k]??'');
+      return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;
+    }).join(','));
+  });
+  // \ufeff (BOM) ដើម្បីឱ្យ Excel បង្ហាញអក្សរខ្មែរត្រឹមត្រូវ
+  downloadBlob('\ufeff'+lines.join('\n'),'text/csv;charset=utf-8',
+    'expense-'+dateKey(new Date())+'.csv');
+}
+// exportJson(): ទាញចេញប្រតិបត្តិការទាំងអស់ជាឯកសារ JSON (សម្រាប់បម្រុងទុកពេញលេញ)
+function exportJson(){
+  if(!transactions.length){alert('គ្មានទិន្នន័យសម្រាប់បម្រុងទុកទេ');return;}
+  downloadBlob(JSON.stringify({
+    app:'khmer-expense-tracker',version:7,
+    exported:new Date().toISOString(),
+    transactions:transactions,
+  }),'application/json','expense-backup-'+dateKey(new Date())+'.json');
+}
+// normalizeTx(t): ត្រួតពិនិត្យ/សម្អាតទិន្នន័យប្រតិបត្តិការមួយ (ពី import) ឱ្យមានទម្រង់ត្រឹមត្រូវ, បើមិនត្រឹមត្រូវត្រឡប់ null
+function normalizeTx(t){
+  if(!t) return null;
+  const amount=parseFloat(t.amount);
+  if(!t.id||!amount||amount<=0||!t.category) return null;
+  return {
+    id:String(t.id),
+    type:t.type==='income'?'income':'expense',
+    category:String(t.category),
+    amount:amount,
+    note:String(t.note||''),
+    date:t.date?String(t.date):new Date().toISOString(),
+    currency:(t.currency==='$'?'$':'៛'),
+    image:String(t.image||''),
+  };
+}
+// parseCsv(text): បំបែកអត្ថបទ CSV ជាជួរដេក/ជួរឈរ (គិតគូរករណីមានសញ្ញា " និងសញ្ញាក្បៀសក្នុងតម្លៃ)
+function parseCsv(text){
+  const rows=[];let cur=[],val='',inQ=false;
+  text=text.replace(/^\ufeff/,'');
+  for(let i=0;i<text.length;i++){
+    const ch=text[i];
+    if(inQ){
+      if(ch==='"'){if(text[i+1]==='"'){val+='"';i++;}else inQ=false;}
+      else val+=ch;
+    }
+    else if(ch==='"') inQ=true;
+    else if(ch===','){cur.push(val);val='';}
+    else if(ch==='\n'||ch==='\r'){
+      if(ch==='\r'&&text[i+1]==='\n')i++;
+      cur.push(val);val='';
+      if(cur.length>1||cur[0]!=='')rows.push(cur);
+      cur=[];
+    }
+    else val+=ch;
+  }
+  if(val!==''||cur.length){cur.push(val);rows.push(cur);}
+  if(rows.length<2)return[];
+  const head=rows[0].map(h=>String(h).trim().toLowerCase());
+  return rows.slice(1).map(r=>{
+    const o={};head.forEach((h,i)=>o[h]=r[i]);return o;
+  });
+}
+// ចុចជ្រើសឯកសារ Restore (.json ឬ .csv) → អាន, ត្រួតពិនិត្យ, បន្ថែមតែកំណត់ត្រាថ្មីៗ (មិនស្ទួន)
+document.getElementById('restoreInput').addEventListener('change',async e=>{
+  const file=e.target.files[0];
+  e.target.value='';
+  if(!file)return;
+  try{
+    const text=await file.text();
+    let list=[];
+    if(file.name.toLowerCase().endsWith('.json')){
+      const data=JSON.parse(text);
+      list=Array.isArray(data)?data:(data.transactions||[]);
+    }else{
+      list=parseCsv(text);
+    }
+    list=list.map(normalizeTx).filter(Boolean);
+    if(!list.length){alert('គ្មានទិន្នន័យត្រឹមត្រូវក្នុងឯកសារទេ');return;}
+    const existing=new Set(transactions.map(t=>t.id));
+    const newOnes=list.filter(t=>!existing.has(t.id));
+    if(!newOnes.length){alert('ទិន្នន័យទាំងអស់ក្នុងឯកសារមានរួចហើយ');return;}
+    if(!confirm('ស្តារ '+newOnes.length+' កំណត់ត្រា?'))return;
+    if(guestMode||!scriptUrl){
+      transactions=[...newOnes,...transactions];
+      transactions.sort((a,b)=>new Date(b.date)-new Date(a.date));
+      saveLocal();render();
+      alert('✔ ស្តាររួចរាល់ ('+newOnes.length+' កំណត់ត្រា)');
+    }else{
+      setSync('busy','កំពុងស្តារ...');
+      let ok=0;
+      for(const t of newOnes){
+        try{await postToSheet({action:'add',transaction:t});ok++;}catch(err){}
+      }
+      await fetchAll();
+      alert('✔ បានស្តារ '+ok+'/'+newOnes.length+' កំណត់ត្រា');
+    }
+  }catch(err){
+    alert('មិនអាចអានឯកសារបានទេ — សូមប្រើឯកសារ .json ឬ .csv ដែលទាញចេញពីកម្មវិធីនេះ');
+  }
+});
+
+// ---------- ភ្ជាប់ URL ----------
+// openUrlModal(): បើកប្រអប់សម្រាប់បញ្ចូល/ប្តូរ URL របស់ Google Apps Script Web App
+function openUrlModal(){
+  document.getElementById('urlInput').value=scriptUrl||'';
+  document.getElementById('urlErr').style.display='none';
+  document.getElementById('urlOverlay').classList.add('open');
+}
+document.getElementById('urlCancel').addEventListener('click',
+  ()=>document.getElementById('urlOverlay').classList.remove('open'));
+document.getElementById('urlOverlay').addEventListener('click',e=>{
+  if(e.target.id==='urlOverlay')document.getElementById('urlOverlay').classList.remove('open');
+});
+// ចុច "ភ្ជាប់": ត្រួតពិនិត្យទម្រង់ URL, រក្សាទុកក្នុង localStorage, ហើយបញ្ជូនទៅទំព័រចូល/ចុះឈ្មោះគណនី
+document.getElementById('urlSave').addEventListener('click',()=>{
+  const url=document.getElementById('urlInput').value.trim();
+  const err=document.getElementById('urlErr');
+  if(!url.startsWith('https://script.google.com/')||!url.includes('/exec')){
+    err.textContent='URL មិនត្រឹមត្រូវ — ត្រូវតែបញ្ចប់ដោយ /exec';
+    err.style.display='block';return;
+  }
+  scriptUrl=url;
+  localStorage.setItem(URL_KEY,url);
+  authToken='';currentUser='';
+  document.getElementById('urlOverlay').classList.remove('open');
+  showAuth();
+  showLoginCard('login'); // ភ្ជាប់រួច → ទៅផ្ទាំងចូលគណនីផ្ទាល់
+});
+
+// ---------- ប្តូរពាក្យសម្ងាត់ (ក្នុងគណនី) ----------
+// openPwModal(): បើកប្រអប់សម្រាប់ប្តូរពាក្យសម្ងាត់គណនីបច្ចុប្បន្ន
+function openPwModal(){
+  ['pwOld','pwNew','pwNew2'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('pwErr').style.display='none';
+  document.getElementById('pwMsg').style.display='none';
+  document.getElementById('pwOverlay').classList.add('open');
+}
+document.getElementById('pwCancel').addEventListener('click',
+  ()=>document.getElementById('pwOverlay').classList.remove('open'));
+document.getElementById('pwOverlay').addEventListener('click',e=>{
+  if(e.target.id==='pwOverlay') document.getElementById('pwOverlay').classList.remove('open');
+});
+// ចុច "រក្សាទុក" ក្នុងប្រអប់ប្តូរពាក្យសម្ងាត់៖ ត្រួតពិនិត្យលក្ខខណ្ឌ រួចផ្ញើសំណើទៅ server
+document.getElementById('pwSave').addEventListener('click',async()=>{
+  const oldP=document.getElementById('pwOld').value;
+  const p1=document.getElementById('pwNew').value;
+  const p2=document.getElementById('pwNew2').value;
+  const err=document.getElementById('pwErr');
+  const msg=document.getElementById('pwMsg');
+  err.style.display='none';msg.style.display='none';
+  const show=m=>{err.textContent=m;err.style.display='block';};
+  if(p1.length<6) return show('ពាក្យសម្ងាត់ថ្មីត្រូវមានយ៉ាងតិច ៦ តួ');
+  if(p1!==p2) return show('ពាក្យសម្ងាត់បញ្ជាក់មិនដូចគ្នាទេ');
+  const btn=document.getElementById('pwSave');
+  btn.disabled=true;btn.textContent='កំពុងប្តូរ...';
+  try{
+    await postToSheet({action:'changePassword',oldPassword:oldP,newPassword:p1});
+    // ធ្វើបច្ចុប្បន្នភាពពាក្យសម្ងាត់ដែលចងចាំ (បើមាន)
+    try{
+      const saved=JSON.parse(localStorage.getItem(CRED_KEY)||'null');
+      if(saved&&saved.email===currentUser){
+        localStorage.setItem(CRED_KEY,JSON.stringify({email:currentUser,password:p1}));
+      }
+    }catch(_){}
+    msg.textContent='✔ ពាក្យសម្ងាត់ត្រូវបានប្តូរដោយជោគជ័យ';
+    msg.style.display='block';
+    setTimeout(()=>document.getElementById('pwOverlay').classList.remove('open'),1200);
+  }catch(e){
+    const msgs={
+      'invalid':'ពាក្យសម្ងាត់បច្ចុប្បន្នមិនត្រឹមត្រូវ',
+      'weak':'ពាក្យសម្ងាត់ថ្មីខ្សោយពេក',
+    };
+    show(msgs[e.message]||('បរាជ័យ ('+e.message+')'));
+  }
+  btn.disabled=false;btn.textContent='រក្សាទុក';
+});
+
+// ---------- Form (សន្លឹកបញ្ចូល/កែប្រតិបត្តិការ) ----------
+// CATEGORY_COLORS: ពណ៌កំណត់ជូនប្រភេទចំណូល/ចំណាយនីមួយៗ (ប្រើលើផ្ទាំងជ្រើសប្រភេទ និងក្រាហ្វិចស្ថិតិ)
+const CATEGORY_COLORS={
+  'ប្រាក់ខែ':'#34c98e','លក់ដូរ':'#ef7f49','អាជីវកម្ម':'#0ea5e9','ការវិនិយោគ':'#8b5cf6',
+  'អំណោយ':'#f472b6','ការប្រាក់':'#10b981','ជំនួយ':'#58b7e6',
+  'អាហារ':'#f2726f','ភេសជ្ជៈ':'#b4794f','ទំនិញផ្ទះ':'#fb7185','សម្លៀកបំពាក់':'#60a5fa',
+  'ដឹកជញ្ជូន':'#5ec7b0','សាំង':'#f97316','ផ្ទះ':'#4da3ff','ភ្លើង-ទឹក':'#eab308',
+  'ទូរសព្ទ-Net':'#38bdf8','សុខភាព':'#ec6a9c','សម្ផស្ស':'#e879f9','ការសិក្សា':'#f5a623',
+  'កម្សាន្ត':'#a78bfa','ដំណើរកម្សាន្ត':'#22d3ee','កូន':'#fda4af','សត្វចិញ្ចឹម':'#a3e635',
+  'បរិច្ចាគ':'#fbbf24','បំណុល':'#94a3b8','ផ្សេងៗ':'#9aa2af',
+};
+// buildChips(): បង្កើតប៊ូតុងជ្រើសប្រភេទ (ចំណូល ឬ ចំណាយ អាស្រ័យ formType) ក្នុងសន្លឹកបញ្ចូល
+function buildChips(){
+  const chips=document.getElementById('chips');
+  chips.innerHTML='';
+  const cats=formType==='income'?INCOME_CATEGORIES:EXPENSE_CATEGORIES;
+  cats.forEach(cat=>{
+    const tile=document.createElement('button');
+    tile.className='cattile'+(selectedCategory===cat?' selected':'');
+    tile.innerHTML=`
+      <span class="catbox" style="background:${CATEGORY_COLORS[cat]||'#9aa2af'}">${CATEGORY_ICONS[cat]||'📦'}</span>
+      <span class="catname">${cat}</span>`;
+    tile.addEventListener('click',()=>{selectedCategory=cat;buildChips();});
+    chips.appendChild(tile);
+  });
+  document.querySelectorAll('.typetab').forEach(b=>b.classList.toggle('on',b.dataset.type===formType));
+  document.querySelectorAll('.curtab').forEach(b=>b.classList.toggle('on',b.dataset.cur===selectedCurrency));
+  const save=document.getElementById('saveBtn');
+  save.classList.toggle('income',formType==='income');
+}
+// setPhotoPreview(): បង្ហាញ/លាក់រូបភាពមើលជាមុន អាស្រ័យលើថាតើមានរូបភាព (photoData) ឬអត់
+function setPhotoPreview(){
+  const pv=document.getElementById('photoPreview');
+  const btn=document.getElementById('photoBtn');
+  if(photoData){
+    document.getElementById('photoImg').src=photoData;
+    pv.style.display='block'; btn.style.display='none';
+  }else{
+    pv.style.display='none'; btn.style.display='block';
+  }
+}
+// openForm(type,tx): បើកសន្លឹកបញ្ចូលប្រតិបត្តិការថ្មី (tx=null) ឬសម្រាប់កែ (tx=ប្រតិបត្តិការចាស់)
+// បំពេញតម្លៃដើមទាំងអស់ (ចំនួន, ថ្ងៃ, ម៉ោង, ចំណាំ, រូបភាព) ចូលក្នុងសមាសធាតុទម្រង់
+function openForm(type,tx){
+  formType=type;
+  editingTx=tx||null;
+  selectedCategory=tx?tx.category:'';
+  selectedCurrency=tx?(tx.currency||'៛'):'៛';
+  photoData=tx?(tx.image||''):'';
+  document.getElementById('amount').value=
+    tx?Number(tx.amount).toLocaleString('en-US',{maximumFractionDigits:2}):'';
+  document.getElementById('note').value=tx?(tx.note||''):'';
+  setPickedDate(dateKey(tx?tx.date:new Date()));
+  const dtv=tx?new Date(tx.date):new Date();
+  setWheelTime(dtv); // កំណត់កង់ម៉ោង/នាទី/AM-PM តាមម៉ោងប្រតិបត្តិការ
+  document.getElementById('errMsg').style.display='none';
+  const save=document.getElementById('saveBtn');
+  save.disabled=false;
+  save.textContent=tx?'រក្សាទុកការកែតម្រូវ':'រក្សាទុក';
+  document.getElementById('deleteBtn').style.display=tx?'block':'none';
+  buildChips(); setPhotoPreview();
+  document.getElementById('overlay').classList.add('open');
+}
+// closeForm(): បិទសន្លឹកបញ្ចូលប្រតិបត្តិការ
+function closeForm(){document.getElementById('overlay').classList.remove('open');}
+
+// ចុចប្តូរប្រភេទ ចំណូល/ចំណាយ ក្នុងទម្រង់ → កំណត់ formType ថ្មី និងសាងសង់ប៊ូតុងប្រភេទឡើងវិញ
+document.querySelectorAll('.typetab').forEach(b=>{
+  b.addEventListener('click',()=>{
+    if(formType===b.dataset.type) return;
+    formType=b.dataset.type;
+    selectedCategory='';
+    buildChips();
+  });
+});
+// ចុចប្តូររូបិយប័ណ្ណ (៛/$) ក្នុងទម្រង់
+document.querySelectorAll('.curtab').forEach(b=>{
+  b.addEventListener('click',()=>{selectedCurrency=b.dataset.cur;buildChips();});
+});
+// ចុចប៊ូតុង "បន្ថែមរូបភាព" → បើកប្រអប់ជ្រើសរូបភាពរបស់ទូរស័ព្ទ/កុំព្យូទ័រ
+document.getElementById('photoBtn').addEventListener('click',()=>document.getElementById('photoInput').click());
+// ពេលជ្រើសរូបភាពរួច៖ បង្រួម (compressImage) រួចបង្ហាញរូបភាពមើលជាមុន
+document.getElementById('photoInput').addEventListener('change',async e=>{
+  const file=e.target.files[0];
+  e.target.value='';
+  if(!file) return;
+  const errEl=document.getElementById('errMsg');
+  try{
+    photoData=await compressImage(file);
+    errEl.style.display='none';
+    setPhotoPreview();
+  }catch(err){
+    errEl.textContent='រូបភាពធំពេក — សូមសាករូបផ្សេង';
+    errEl.style.display='block';
+  }
+});
+// ចុច ✕ លើរូបភាព → លុបរូបភាពដែលបានជ្រើសចេញពីទម្រង់
+document.getElementById('photoRemove').addEventListener('click',()=>{photoData='';setPhotoPreview();});
+document.getElementById('imgViewer').addEventListener('click',()=>{
+  document.getElementById('imgViewer').classList.remove('open');
+});
+
+// ចុចផ្ទៃខាងក្រៅសន្លឹក (កន្លែងងងឹត) → បិទសន្លឹកបញ្ចូល
+document.getElementById('overlay').addEventListener('click',e=>{if(e.target.id==='overlay')closeForm();});
+// ចុចប៊ូតុងមូល ＋ → បើកទម្រង់បញ្ចូលប្រតិបត្តិការថ្មី (លំនាំដើមជាចំណាយ)
+document.getElementById('fabBtn').addEventListener('click',()=>openForm('expense'));
+// ចុចប៊ូតុង ⟳ → ទាញយកទិន្នន័យឡើងវិញពី Google Sheets
+document.getElementById('refreshBtn').addEventListener('click',fetchAll);
+// ចុចព្រួញ ‹ / › → ប្តូរខែកំពុងមើលថយក្រោយ ឬទៅមុខ រួច render ឡើងវិញ
+document.getElementById('prevMonth').addEventListener('click',()=>{
+  viewMonth=new Date(viewMonth.getFullYear(),viewMonth.getMonth()-1,1);render();
+});
+document.getElementById('nextMonth').addEventListener('click',()=>{
+  viewMonth=new Date(viewMonth.getFullYear(),viewMonth.getMonth()+1,1);render();
+});
+// setTab(name): ប្តូរផ្ទាំងកំពុងបង្ហាញ (daily/calendar/monthly/total) ហើយ render ឡើងវិញ
+function setTab(name){
+  activeTab=name;
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===name));
+  positionTabInd();
+  render();
+}
+// ចុចលើផ្ទាំង (ប្រចាំថ្ងៃ/ប្រតិទិន/ប្រចាំខែ/សរុប) → ហៅ setTab
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>setTab(t.dataset.tab)));
+// ចុចម៉ឺនុយខាងក្រោម (ប្រតិបត្តិការ/ស្ថិតិ/គណនី/ផ្សេងៗ) → ប្តូរ activeNav ហើយ render ឡើងវិញ
+document.querySelectorAll('.navbtn').forEach(b=>{
+  b.addEventListener('click',()=>{
+    activeNav=b.dataset.nav;
+    document.querySelectorAll('.navbtn').forEach(x=>x.classList.toggle('active',x===b));
+    render();
+  });
+});
+
+// ចុច "រក្សាទុក" ក្នុងទម្រង់៖ ត្រួតពិនិត្យទិន្នន័យ, បង្កើត/ធ្វើបច្ចុប្បន្នភាពប្រតិបត្តិការ
+// ហើយផ្ញើទៅ Google Sheets (ឬរក្សាទុកក្នុងម៉ាស៊ីនបើជា guest)
+document.getElementById('saveBtn').addEventListener('click',async()=>{
+  const amt=parseFloat(document.getElementById('amount').value.replace(/,/g,''));
+  const errEl=document.getElementById('errMsg');
+  const sheetEl=document.querySelector('.sheet');
+  const showErr=msg=>{
+    errEl.textContent=msg;errEl.style.display='block';
+    sheetEl.classList.remove('shake');void sheetEl.offsetWidth;sheetEl.classList.add('shake');
+  };
+  if(!amt||amt<=0) return showErr('សូមបញ្ចូលចំនួនទឹកប្រាក់ត្រឹមត្រូវ');
+  if(!selectedCategory) return showErr('សូមជ្រើសរើសប្រភេទ');
+
+  const isEdit=!!editingTx;
+  const pickedDate=document.getElementById('dateInput').value; // yyyy-mm-dd
+  const [y,m,d]=pickedDate.split('-').map(Number);
+  const tsel=getWheelTime(); // អានម៉ោងពីកង់ (បម្លែង AM/PM → 24 ម៉ោង)
+  const sec=isEdit?new Date(editingTx.date).getSeconds():new Date().getSeconds();
+  const dateIso=new Date(y,m-1,d,tsel.h,tsel.m,sec||0).toISOString();
+  const entry={
+    id:isEdit?editingTx.id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+    type:formType,
+    category:selectedCategory,
+    amount:amt,
+    note:document.getElementById('note').value.trim(),
+    date:dateIso,
+    currency:selectedCurrency,
+    image:photoData,
+  };
+  const btn=document.getElementById('saveBtn');
+  btn.disabled=true;btn.textContent='កំពុងរក្សាទុក...';
+  setSync('busy','កំពុងផ្ញើ...');
+  try{
+    if(guestMode){
+      if(isEdit){transactions=transactions.map(t=>t.id===entry.id?entry:t);}
+      else{
+        transactions.unshift(entry);
+        transactions.sort((a,b)=>new Date(b.date)-new Date(a.date));
+      }
+      saveLocal();
+      setSync('idle','ទិន្នន័យរក្សាក្នុងម៉ាស៊ីន');
+    }else if(isEdit){
+      await postToSheet({action:'update',transaction:entry});
+      transactions=transactions.map(t=>t.id===entry.id?entry:t);
+      cacheSave();
+      setSync('ok','បានធ្វើសមកាលកម្ម');
+    }else{
+      await postToSheet({action:'add',transaction:entry});
+      transactions.unshift(entry);
+      transactions.sort((a,b)=>new Date(b.date)-new Date(a.date));
+      cacheSave();
+      setSync('ok','បានធ្វើសមកាលកម្ម');
+    }
+    editingTx=null;
+    closeForm();render();
+  }catch(e){
+    showErr('ការរក្សាទុកបរាជ័យ — សូមពិនិត្យអ៊ីនធឺណិត ឬ URL');
+    setSync('err','បរាជ័យ');
+    btn.disabled=false;btn.textContent=isEdit?'រក្សាទុកការកែតម្រូវ':'រក្សាទុក';
+  }
+});
+
+// ចុចប៊ូតុងលុប 🗑 ក្នុងទម្រង់៖ សុំបញ្ជាក់ រួចលុបប្រតិបត្តិការចេញ (មូលដ្ឋាន + Google Sheets)
+document.getElementById('deleteBtn').addEventListener('click',async()=>{
+  if(!editingTx) return;
+  if(!confirm('លុបប្រតិបត្តិការនេះ?')) return;
+  const id=editingTx.id;
+  const prev=transactions.slice();
+  transactions=transactions.filter(t=>t.id!==id);
+  closeForm();render();
+  if(guestMode){
+    saveLocal();
+    setSync('idle','ទិន្នន័យរក្សាក្នុងម៉ាស៊ីន');
+    editingTx=null;
+    return;
+  }
+  setSync('busy','កំពុងលុប...');
+  try{
+    await postToSheet({action:'delete',id});
+    cacheSave();
+    setSync('ok','បានធ្វើសមកាលកម្ម');
+  }catch(e){
+    transactions=prev;render();
+    setSync('err','ការលុបបរាជ័យ');
+  }
+  editingTx=null;
+});
+
+// ---------- Setup (ទំព័រភ្ជាប់ Google Sheets ដំបូង) ----------
+// ចុច "ភ្ជាប់" ក្នុងទំព័រ Setup ដំបូង៖ ត្រួតពិនិត្យ URL រួចចាប់ផ្តើមកម្មវិធី (startApp)
+document.getElementById('connectBtn').addEventListener('click',()=>{
+  const url=document.getElementById('scriptUrlInput').value.trim();
+  const err=document.getElementById('setupErr');
+  if(!url.startsWith('https://script.google.com/')||!url.includes('/exec')){
+    err.textContent='URL មិនត្រឹមត្រូវ — ត្រូវតែបញ្ចប់ដោយ /exec';
+    err.style.display='block';return;
+  }
+  scriptUrl=url;
+  localStorage.setItem(URL_KEY,url);
+  startApp();
+});
+// ---------- ការចូល / ចុះឈ្មោះ ----------
+const CRED_KEY='khmer-expense-cred';
+// ---------- ការចូល / ចុះឈ្មោះ ----------
+// showAuth(): បង្ហាញផ្ទាំងចូល/ចុះឈ្មោះគណនី, បំពេញអ៊ីមែល/ពាក្យសម្ងាត់ស្រាប់ បើធ្លាប់ "ចងចាំខ្ញុំ"
+function showAuth(){
+  document.getElementById('setupScreen').style.display='none';
+  document.getElementById('appScreen').style.display='none';
+  document.getElementById('authScreen').classList.add('open');
+  document.getElementById('resetCard').style.display='none';
+  document.getElementById('loginCard').style.display='none';
+  document.getElementById('splashView').style.display='flex';
+  // បំពេញអ៊ីមែល + ពាក្យសម្ងាត់ស្រាប់ បើធ្លាប់ជ្រើស "ចងចាំខ្ញុំ"
+  try{
+    const saved=JSON.parse(localStorage.getItem(CRED_KEY)||'null');
+    if(saved&&saved.email){
+      document.getElementById('authEmail').value=saved.email||'';
+      document.getElementById('authPass').value=saved.password||'';
+      document.getElementById('rememberMe').checked=true;
+    }
+  }catch(_){}
+}
+// enterApp(): បន្ទាប់ពីចូល/ចុះឈ្មោះជោគជ័យ — បង្ហាញអេក្រង់សំខាន់ ហើយផ្ទុកទិន្នន័យពី Google Sheets
+async function enterApp(){
+  guestMode=false;
+  saveSession(true);
+  document.getElementById('authScreen').classList.remove('open');
+  document.getElementById('setupScreen').style.display='none';
+  document.getElementById('appScreen').style.display='flex';
+  render();
+  await offerUploadLocal();
+  fetchAll();
+}
+// ផ្ទុកទិន្នន័យក្នុងម៉ាស៊ីនឡើងទៅគណនី (បើមាន)
+// offerUploadLocal(): បើមានទិន្នន័យចាស់ក្នុងម៉ាស៊ីន (ពេលធ្លាប់ជា guest) សួរថាតើផ្ទុកឡើងទៅគណនីថ្មីដែរឬទេ
+async function offerUploadLocal(){
+  let local=[];
+  try{local=JSON.parse(localStorage.getItem(LOCAL_TX_KEY)||'[]');}catch(_){}
+  if(!local.length) return;
+  if(!confirm('មានទិន្នន័យក្នុងម៉ាស៊ីន '+local.length+' កំណត់ត្រា — ផ្ទុកឡើងទៅគណនីរបស់អ្នក?')){
+    return; // ទុកក្នុងម៉ាស៊ីនដដែល — អាចផ្ទុកឡើងពេលក្រោយដោយ Restore
+  }
+  setSync('busy','កំពុងផ្ទុកឡើង...');
+  let ok=0;
+  for(const t of local){
+    try{await postToSheet({action:'add',transaction:t});ok++;}catch(e){}
+  }
+  if(ok===local.length){localStorage.removeItem(LOCAL_TX_KEY);}
+  alert('បានផ្ទុកឡើង '+ok+'/'+local.length+' កំណត់ត្រា');
+}
+// forceLogout(reload): បោសសម្អាត token/session ចេញ ហើយត្រឡប់ទៅផ្ទាំងចូលគណនី (ឬ reload ទំព័រ)
+function forceLogout(){
+  // ត្រឡប់ទៅផ្ទាំងដើមភ្លាមៗ ដោយមិន reload ទំព័រទាំងមូល — លឿនជាងច្រើន
+  authToken=''; currentUser=''; guestMode=false;
+  transactions=[]; editingTx=null;
+  activeNav='trans'; activeTab='daily';
+  document.getElementById('overlay').classList.remove('open');
+  document.getElementById('calOverlay').classList.remove('open');
+  document.getElementById('pwOverlay').classList.remove('open');
+  document.getElementById('urlOverlay').classList.remove('open');
+  localStorage.removeItem(CACHE_KEY);
+  clearSession();
+  showAuth();
+}
+
+let authMode='login';
+// setAuthMode(m): ប្តូររវាង "login" និង "signup" — ប្តូរអត្ថបទ/ប៊ូតុងលើទម្រង់ចូលគណនីតាមរបៀប
+function setAuthMode(m){
+  authMode=m;
+  document.getElementById('authTitle').textContent=
+    m==='login'?'សូមស្វាគមន៍':'បង្កើតគណនីថ្មី';
+  document.getElementById('authSub').textContent=
+    m==='login'?'ចូលប្រើគណនីរបស់អ្នក ដើម្បីបន្តប្រើប្រាស់':'បំពេញព័ត៌មានខាងក្រោមដើម្បីចុះឈ្មោះ';
+  document.getElementById('confirmWrap').style.display=m==='signup'?'block':'none';
+  document.getElementById('forgotBtn').style.display=m==='login'?'inline':'none';
+  document.getElementById('authSubmit').textContent=m==='login'?'→ ចូល':'✨ ចុះឈ្មោះ';
+  document.getElementById('authFootText').textContent=
+    m==='login'?'មិនទាន់មានគណនីមែនទេ?':'មានគណនីរួចហើយ?';
+  document.getElementById('authSwitch').textContent=
+    m==='login'?'បង្កើតគណនី':'ចូលគណនី';
+  document.getElementById('authPass').autocomplete=
+    m==='login'?'current-password':'new-password';
+  document.getElementById('authErr').style.display='none';
+  document.getElementById('authMsg').style.display='none';
+}
+// ចុច "បង្កើតគណនី" / "ចូលគណនី" (ខាងក្រោមទម្រង់) → ប្តូររវាង login និង signup
+document.getElementById('authSwitch').addEventListener('click',
+  ()=>setAuthMode(authMode==='login'?'signup':'login'));
+
+// ចុចរូបភ្នែក 👁 → បង្ហាញ/លាក់អក្សរពាក្យសម្ងាត់
+document.getElementById('eyeBtn').addEventListener('click',()=>{
+  const p=document.getElementById('authPass');
+  p.type=p.type==='password'?'text':'password';
+  document.getElementById('eyeBtn').textContent=p.type==='password'?'👁':'🙈';
+});
+
+// ចុចប៊ូតុងចូលតាម Google/Facebook/Apple → បង្ហាញសារថាមិនទាន់អាចប្រើ (ត្រូវការ host លើ website)
+document.querySelectorAll('.socialbtn').forEach(b=>{
+  b.addEventListener('click',()=>{
+    const err=document.getElementById('authErr');
+    err.textContent='ការចូលជាមួយ '+b.dataset.sns+' ត្រូវការ host កម្មវិធីលើ website — មិនទាន់អាចប្រើក្នុងកំណែនេះទេ';
+    err.style.display='block';
+  });
+});
+
+// ចុច "ចូល"/"ចុះឈ្មោះ"៖ ត្រួតពិនិត្យអ៊ីមែល/ពាក្យសម្ងាត់, ផ្ញើសំណើទៅ server, រក្សា token ហើយចូលកម្មវិធី
+document.getElementById('authSubmit').addEventListener('click',async()=>{
+  const email=document.getElementById('authEmail').value.trim().toLowerCase();
+  const pass=document.getElementById('authPass').value;
+  const err=document.getElementById('authErr');
+  const card=document.querySelector('.authcard');
+  const show=m=>{
+    err.textContent=m;err.style.display='block';
+    card.classList.remove('shake');void card.offsetWidth;card.classList.add('shake');
+  };
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return show('អ៊ីមែលមិនត្រឹមត្រូវ');
+  if(pass.length<6) return show('ពាក្យសម្ងាត់ត្រូវមានយ៉ាងតិច ៦ តួ');
+  if(authMode==='signup'&&pass!==document.getElementById('authPass2').value)
+    return show('ពាក្យសម្ងាត់បញ្ជាក់មិនដូចគ្នាទេ');
+  const remember=document.getElementById('rememberMe').checked;
+  const btn=document.getElementById('authSubmit');
+  btn.disabled=true;btn.textContent='កំពុងដំណើរការ...';
+  try{
+    const d=await postToSheet({
+      action:authMode==='login'?'login':'signup',
+      email:email,password:pass,
+    });
+    authToken=d.token; // ក្នុង memory ប៉ុណ្ណោះ
+    currentUser=d.email;
+    if(remember){
+      localStorage.setItem(CRED_KEY,JSON.stringify({email:email,password:pass}));
+    }else{
+      localStorage.removeItem(CRED_KEY);
+    }
+    enterApp();
+  }catch(e){
+    const msgs={
+      'exists':'អ៊ីមែលនេះមានគណនីរួចហើយ — សូមចូលវិញ',
+      'invalid':'អ៊ីមែល ឬពាក្យសម្ងាត់មិនត្រឹមត្រូវ',
+      'Unknown action':'Apps Script នៅជា version ចាស់ — សូម Deploy ជា New version',
+    };
+    show(msgs[e.message]||('បរាជ័យ ('+e.message+') — សូមពិនិត្យអ៊ីនធឺណិត ឬ Deploy Script ជា New version'));
+  }
+  btn.disabled=false;
+  btn.textContent=authMode==='login'?'→ ចូល':'✨ ចុះឈ្មោះ';
+});
+
+// ---------- ភ្លេចពាក្យសម្ងាត់ — លេខកូដផ្ញើទៅអ៊ីមែលអ្នកប្រើផ្ទាល់ ----------
+// showResetCard(): បង្ហាញកាតកំណត់ពាក្យសម្ងាត់ឡើងវិញ ជំនួសកាតចូលគណនី
+function showResetCard(){
+  document.getElementById('loginCard').style.display='none';
+  document.getElementById('resetCard').style.display='block';
+  document.getElementById('resetEmail').value=
+    document.getElementById('authEmail').value.trim().toLowerCase();
+  document.getElementById('resetStep2').style.display='none';
+  document.getElementById('resetErr').style.display='none';
+  document.getElementById('resetMsg').style.display='none';
+  document.getElementById('resetCode').value='';
+  document.getElementById('resetPass').value='';
+  document.getElementById('resetPass2').value='';
+}
+// backToLoginCard(): ត្រឡប់ពីកាតកំណត់ពាក្យសម្ងាត់ឡើងវិញ ទៅកាតចូលគណនីវិញ
+function backToLoginCard(){
+  document.getElementById('resetCard').style.display='none';
+  document.getElementById('loginCard').style.display='block';
+}
+// ចុច "ភ្លេចពាក្យសម្ងាត់?" → បើកកាតកំណត់ពាក្យសម្ងាត់ឡើងវិញ
+document.getElementById('forgotBtn').addEventListener('click',showResetCard);
+document.getElementById('backToLogin').addEventListener('click',backToLoginCard);
+
+// ចុច "ផ្ញើលេខកូដ"៖ ត្រួតពិនិត្យអ៊ីមែល រួចស្នើ server ផ្ញើលេខកូដ ៦ ខ្ទង់ទៅអ៊ីមែលនោះ
+document.getElementById('sendCodeBtn').addEventListener('click',async()=>{
+  const email=document.getElementById('resetEmail').value.trim().toLowerCase();
+  const err=document.getElementById('resetErr');
+  const msg=document.getElementById('resetMsg');
+  err.style.display='none';msg.style.display='none';
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){
+    err.textContent='សូមបញ្ចូលអ៊ីមែលឱ្យបានត្រឹមត្រូវ';
+    err.style.display='block';return;
+  }
+  const btn=document.getElementById('sendCodeBtn');
+  btn.disabled=true;btn.textContent='កំពុងផ្ញើ...';
+  try{
+    await postToSheet({action:'requestReset',email:email});
+    document.getElementById('resetStep2').style.display='block';
+    msg.textContent='បើអ៊ីមែលនេះមានគណនី លេខកូដ ៦ ខ្ទង់ត្រូវបានផ្ញើទៅ — សូមពិនិត្យប្រអប់សំបុត្រ (និង Spam)';
+    msg.style.display='block';
+  }catch(e){
+    err.textContent=e.message==='mail_failed'
+      ?'មិនអាចផ្ញើអ៊ីមែលបានទេ — សូមព្យាយាមម្តងទៀត'
+      :'បរាជ័យ ('+e.message+')';
+    err.style.display='block';
+  }
+  btn.disabled=false;btn.textContent='ផ្ញើលេខកូដ';
+});
+
+// ចុច "ប្តូរពាក្យសម្ងាត់"៖ ត្រួតពិនិត្យលេខកូដ+ពាក្យសម្ងាត់ថ្មី រួចផ្ញើទៅ server ដើម្បីបញ្ជាក់ការប្តូរ
+document.getElementById('confirmResetBtn').addEventListener('click',async()=>{
+  const email=document.getElementById('resetEmail').value.trim().toLowerCase();
+  const code=document.getElementById('resetCode').value.trim();
+  const p1=document.getElementById('resetPass').value;
+  const p2=document.getElementById('resetPass2').value;
+  const err=document.getElementById('resetErr');
+  const msg=document.getElementById('resetMsg');
+  err.style.display='none';msg.style.display='none';
+  const show=m=>{err.textContent=m;err.style.display='block';};
+  if(!/^\d{6}$/.test(code)) return show('លេខកូដត្រូវមាន ៦ ខ្ទង់');
+  if(p1.length<6) return show('ពាក្យសម្ងាត់ថ្មីត្រូវមានយ៉ាងតិច ៦ តួ');
+  if(p1!==p2) return show('ពាក្យសម្ងាត់បញ្ជាក់មិនដូចគ្នាទេ');
+  const btn=document.getElementById('confirmResetBtn');
+  btn.disabled=true;btn.textContent='កំពុងប្តូរ...';
+  try{
+    await postToSheet({action:'confirmReset',email:email,code:code,newPassword:p1});
+    // បើធ្លាប់ "ចងចាំខ្ញុំ" ជាមួយអ៊ីមែលនេះ — ធ្វើបច្ចុប្បន្នភាពពាក្យសម្ងាត់ដែលចងចាំ
+    try{
+      const saved=JSON.parse(localStorage.getItem(CRED_KEY)||'null');
+      if(saved&&saved.email===email){
+        localStorage.setItem(CRED_KEY,JSON.stringify({email:email,password:p1}));
+      }
+    }catch(_){}
+    backToLoginCard();
+    document.getElementById('authEmail').value=email;
+    document.getElementById('authPass').value='';
+    const am=document.getElementById('authMsg');
+    am.textContent='✔ ពាក្យសម្ងាត់ត្រូវបានប្តូរ — សូមចូលដោយពាក្យសម្ងាត់ថ្មី';
+    am.style.display='block';
+  }catch(e){
+    const msgs={
+      'badcode':'លេខកូដមិនត្រឹមត្រូវ — សូមពិនិត្យម្តងទៀត',
+      'expired':'លេខកូដផុតកំណត់ហើយ — សូមចុច "ផ្ញើលេខកូដ" ម្តងទៀត',
+      'weak':'ពាក្យសម្ងាត់ថ្មីខ្សោយពេក',
+    };
+    show(msgs[e.message]||('បរាជ័យ ('+e.message+')'));
+  }
+  btn.disabled=false;btn.textContent='✔ ប្តូរពាក្យសម្ងាត់';
+});
+
+// ---------- ប្រតិទិនជ្រើសថ្ងៃខែ ----------
+let calView=new Date();
+// ---------- ប្រតិទិនជ្រើសថ្ងៃខែ ----------
+// fmtDisplayDate(k): បម្លែង key "YYYY-MM-DD" ទៅជាទម្រង់បង្ហាញ "DD/MM/YYYY"
+function fmtDisplayDate(k){
+  const p=k.split('-');
+  return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:'--/--/----';
+}
+// setPickedDate(k): កំណត់ថ្ងៃដែលបានជ្រើសទៅក្នុងទម្រង់ (input លាក់ + អត្ថបទបង្ហាញ)
+function setPickedDate(k){
+  document.getElementById('dateInput').value=k;
+  document.getElementById('dateDisplay').textContent=fmtDisplayDate(k);
+}
+// openCal(): បើកប្រតិទិនតូចសម្រាប់ជ្រើសកាលបរិច្ឆេទ ដោយចាប់ផ្តើមបង្ហាញខែនៃថ្ងៃដែលកំពុងជ្រើស
+function openCal(){
+  const k=document.getElementById('dateInput').value;
+  calView=k?new Date(k+'T12:00:00'):new Date();
+  calView.setDate(1);
+  renderCal();
+  document.getElementById('calOverlay').classList.add('open');
+}
+// closeCal(): បិទប្រតិទិនតូច
+function closeCal(){document.getElementById('calOverlay').classList.remove('open');}
+// renderCal(): គូរក្រឡាថ្ងៃទាំងអស់ក្នុងខែសម្រាប់ប្រតិទិនតូច (ប្រើពេលជ្រើសកាលបរិច្ឆេទក្នុងទម្រង់)
+function renderCal(){
+  const y=calView.getFullYear(), m=calView.getMonth();
+  document.getElementById('calTitle').textContent=`${KHMER_MONTHS[m]} ${y}`;
+  const days=document.getElementById('calDays');
+  days.innerHTML='';
+  const first=new Date(y,m,1).getDay();
+  const daysIn=new Date(y,m+1,0).getDate();
+  const todayK=dateKey(new Date());
+  const selK=document.getElementById('dateInput').value;
+  for(let i=0;i<first;i++){
+    const b=document.createElement('button');
+    b.className='calday';b.disabled=true;
+    days.appendChild(b);
+  }
+  for(let d=1;d<=daysIn;d++){
+    const k=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const b=document.createElement('button');
+    b.className='calday'+(k===todayK?' today':'')+(k===selK?' sel':'');
+    b.textContent=d;
+    b.addEventListener('click',()=>{setPickedDate(k);closeCal();});
+    days.appendChild(b);
+  }
+}
+document.getElementById('dateMain').addEventListener('click',openCal);
+// ដាក់ក្បៀសរាល់ ៣ ខ្ទង់ ពេលកំពុងវាយចំនួនទឹកប្រាក់
+document.getElementById('amount').addEventListener('input',()=>{
+  const el=document.getElementById('amount');
+  let v=el.value.replace(/[^\d.]/g,'');
+  const firstDot=v.indexOf('.');
+  let intPart=firstDot===-1?v:v.slice(0,firstDot);
+  let fracPart=firstDot===-1?null:v.slice(firstDot+1).replace(/\./g,'').slice(0,2);
+  intPart=intPart.replace(/^0+(?=\d)/,'');
+  intPart=intPart.replace(/\B(?=(\d{3})+(?!\d))/g,',');
+  el.value=fracPart===null?intPart:intPart+'.'+fracPart;
+});
+document.getElementById('calPrev').addEventListener('click',()=>{
+  calView=new Date(calView.getFullYear(),calView.getMonth()-1,1);renderCal();
+});
+document.getElementById('calNext').addEventListener('click',()=>{
+  calView=new Date(calView.getFullYear(),calView.getMonth()+1,1);renderCal();
+});
+document.getElementById('calToday').addEventListener('click',()=>{
+  setPickedDate(dateKey(new Date()));closeCal();
+});
+document.getElementById('calClose').addEventListener('click',closeCal);
+document.getElementById('calOverlay').addEventListener('click',e=>{
+  if(e.target.id==='calOverlay')closeCal();
+});
+
+// ---------- កង់ជ្រើសម៉ោង (scroll ឡើងលើ-ចុះក្រោម, AM/PM, រំញ័រតិចៗ) ----------
+const WH_ITEM=30; // កម្ពស់ជួរនីមួយៗ (px)
+const WH_HOURS=[...Array(12)].map((_,i)=>i+1);
+const WH_MINS=[...Array(60)].map((_,i)=>i);
+const WH_AMPM=['AM','PM'];
+function buildWheel(el,values,fmt){
+  el.innerHTML='';
+  const pad1=document.createElement('div');pad1.className='witem';el.appendChild(pad1);
+  values.forEach(v=>{
+    const d=document.createElement('div');
+    d.className='witem';d.textContent=fmt?fmt(v):v;
+    el.appendChild(d);
+  });
+  const pad2=document.createElement('div');pad2.className='witem';el.appendChild(pad2);
+  el._vals=values;el._i=0;
+  el.addEventListener('scroll',()=>{
+    const i=Math.max(0,Math.min(values.length-1,Math.round(el.scrollTop/WH_ITEM)));
+    if(i!==el._i){
+      el._i=i;
+      try{if(navigator.vibrate)navigator.vibrate(5);}catch(_){} // រំញ័រតិចៗពេលអូស
+      wheelMark(el);
+    }
+  },{passive:true});
+}
+function wheelMark(el){
+  el.querySelectorAll('.witem').forEach((it,idx)=>it.classList.toggle('sel',idx===el._i+1));
+}
+function wheelSet(el,index){
+  el._i=index;
+  el.scrollTop=index*WH_ITEM;
+  wheelMark(el);
+}
+function wheelVal(el){return el._vals[Math.max(0,Math.min(el._vals.length-1,el._i))];}
+buildWheel(document.getElementById('whHour'),WH_HOURS);
+buildWheel(document.getElementById('whMin'),WH_MINS,v=>String(v).padStart(2,'0'));
+buildWheel(document.getElementById('whAmpm'),WH_AMPM);
+function setWheelTime(d){
+  const h24=d.getHours();
+  wheelSet(document.getElementById('whHour'),(h24+11)%12); // index 0-11 = ម៉ោង 1-12
+  wheelSet(document.getElementById('whMin'),d.getMinutes());
+  wheelSet(document.getElementById('whAmpm'),h24>=12?1:0);
+}
+function getWheelTime(){
+  const h12=wheelVal(document.getElementById('whHour'));
+  const mi=wheelVal(document.getElementById('whMin'));
+  const pm=wheelVal(document.getElementById('whAmpm'))==='PM';
+  return {h:(h12%12)+(pm?12:0), m:mi};
+}
+
+// ---------- Splash ----------
+// showLoginCard(mode): បង្ហាញកាតចូល/ចុះឈ្មោះគណនី ជំនួសផ្ទាំង splash ដំបូង
+function showLoginCard(mode){
+  document.getElementById('splashView').style.display='none';
+  document.getElementById('loginCard').style.display='block';
+  setAuthMode(mode);
+}
+document.getElementById('getStarted').addEventListener('click',()=>{
+  if(scriptUrl)showLoginCard('signup');
+  else enterGuest(true); // មិនទាន់ភ្ជាប់ Google Sheets → ចូលប្រើភ្លាម (ទិន្នន័យក្នុងម៉ាស៊ីន)
+});
+document.getElementById('haveAcct').addEventListener('click',()=>{
+  if(scriptUrl)showLoginCard('login');
+  else openUrlModal(); // ត្រូវភ្ជាប់ URL ជាមុនសិន ទើបចូលគណនីបាន
+});
+
+// ---------- រូបក្រដាសប្រាក់រៀល (base64 — ផ្ទុកតែម្តង ប្រើគ្រប់កន្លែង) ----------
+const NOTE_IMAGES={
+  '20':'data:image/jpeg;base64,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',
+  '50':'data:image/jpeg;base64,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',
+  '100':'data:image/jpeg;base64,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',
+};
+document.querySelectorAll('img.noteimg').forEach(el=>{
+  try{el.src=NOTE_IMAGES[el.dataset.note]||'';}catch(_){}
+});
+
+// ---------- ចាប់ផ្តើម ----------
+// enterGuest(resetCount): ចូលប្រើកម្មវិធីជា "អ្នកភ្ញៀវ" ដោយមិនចូលគណនី — ទិន្នន័យរក្សាក្នុងម៉ាស៊ីនតែប៉ុណ្ណោះ
+function enterGuest(resetCount){
+  guestMode=true;currentUser='';authToken='';
+  document.getElementById('authScreen').classList.remove('open');
+  document.getElementById('setupScreen').style.display='none';
+  document.getElementById('appScreen').style.display='flex';
+  loadLocal();
+  setSync('idle','ទិន្នន័យក្នុងម៉ាស៊ីន (មិនទាន់ភ្ជាប់)');
+  render();
+  saveSession(resetCount!==false);
+}
+document.getElementById('skipLogin').addEventListener('click',()=>enterGuest(true));
+
+// restoreAuth(sess): ស្តារ session ចូលគណនីពី sessionStorage វិញ (ពេល refresh ទំព័រ) ហើយផ្ទៀងផ្ទាត់ token ជាមួយ server
+async function restoreAuth(sess){
+  guestMode=false;
+  authToken=sess.token;
+  currentUser=sess.email||'';
+  document.getElementById('authScreen').classList.remove('open');
+  document.getElementById('setupScreen').style.display='none';
+  document.getElementById('appScreen').style.display='flex';
+  render();
+  saveSession(false); // កុំកំណត់ចំនួន refresh ឡើងវិញ
+  // fetchAll ត្រួតពិនិត្យ token ខ្លួនឯង — មិនចាំបាច់ verify ដាច់ដោយឡែក (លឿនជាងមួយជំហាន)
+  fetchAll();
+}
+
+// startApp(): ចំណុចចាប់ផ្តើមកម្មវិធី — ពិនិត្យ session ចាស់ (អនុញ្ញាត refresh 2 ដង) ដើម្បីសម្រេចថាបង្ហាញ
+// ផ្ទាំងណា៖ បន្ត guest, បន្តគណនីចូល, ទំព័រចូលគណនី ឬទំព័រ setup (បើមិនទាន់ភ្ជាប់ URL)
+function startApp(){
+  // ស្តារ session ពេល refresh — អនុញ្ញាត ២ ដង, ដងទី ៣ ត្រឡប់ទៅផ្ទាំងដើមវិញ
+  let sess=null;
+  try{sess=JSON.parse(sessionStorage.getItem(SESS_KEY)||'null');}catch(_){}
+  if(sess){
+    const n=(parseInt(sessionStorage.getItem(REFRESH_KEY)||'0',10)||0)+1;
+    if(n>=3){
+      clearSession(); // refresh ដងទី ៣ → ត្រឡប់ទៅដើម
+    }else{
+      try{sessionStorage.setItem(REFRESH_KEY,String(n));}catch(_){}
+      if(sess.mode==='guest'){enterGuest(false);return;}
+      if(sess.mode==='auth'&&sess.token&&scriptUrl){restoreAuth(sess);return;}
+    }
+  }
+  showAuth(); // បង្ហាញផ្ទាំងចាប់ផ្តើម (splash) ជានិច្ច ពេលបើកថ្មី
+}
+// ---------- Theme (ភ្លឺ / ងងឹត / តាមប្រព័ន្ធ) ----------
+const THEME_KEY='khmer-expense-theme';
+let themeMode=localStorage.getItem(THEME_KEY)||'auto';
+const THEME_LABELS={auto:'តាមប្រព័ន្ធ 🌓',light:'ភ្លឺ ☀️',dark:'ងងឹត 🌙'};
+function applyTheme(){
+  const dark=themeMode==='dark'||
+    (themeMode==='auto'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);
+  if(dark)document.documentElement.dataset.theme='dark';
+  else delete document.documentElement.dataset.theme;
+  const m=document.querySelector('meta[name="theme-color"]');
+  if(m)m.content=dark?'#0d1117':'#064e3b';
+}
+applyTheme();
+if(window.matchMedia){
+  try{
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{
+      if(themeMode==='auto')applyTheme();
+    });
+  }catch(_){}
+}
+
+// ---------- ស្វែងរកប្រតិបត្តិការ ----------
+let searchQuery='';
+document.getElementById('searchBtn').addEventListener('click',()=>{
+  const bar=document.getElementById('searchBar');
+  const show=bar.style.display==='none';
+  bar.style.display=show?'flex':'none';
+  if(show){
+    if(activeNav!=='trans')activeNav='trans';
+    if(activeTab!=='daily')activeTab='daily';
+    render();
+    document.getElementById('searchInput').focus();
+  }else{
+    searchQuery='';
+    document.getElementById('searchInput').value='';
+    render();
+  }
+});
+document.getElementById('searchInput').addEventListener('input',e=>{
+  searchQuery=e.target.value;
+  render();
+});
+document.getElementById('searchClear').addEventListener('click',()=>{
+  searchQuery='';
+  document.getElementById('searchInput').value='';
+  document.getElementById('searchBar').style.display='none';
+  render();
+});
+
+// ---------- ប៊ូតុង Back ថយម្តងមួយជំហាន (មិនចេញពីកម្មវិធីភ្លាមទេ) ----------
+function handleBack(){
+  const isOpen=id=>document.getElementById(id).classList.contains('open');
+  const sb=document.getElementById('searchBar');
+  if(sb&&sb.style.display!=='none'){
+    sb.style.display='none';searchQuery='';
+    document.getElementById('searchInput').value='';
+    render();return true;
+  }
+  if(isOpen('imgViewer')){document.getElementById('imgViewer').classList.remove('open');return true;}
+  if(isOpen('overlay')){closeForm();return true;}
+  if(isOpen('calOverlay')){closeCal();return true;}
+  if(isOpen('pwOverlay')){document.getElementById('pwOverlay').classList.remove('open');return true;}
+  if(isOpen('urlOverlay')){document.getElementById('urlOverlay').classList.remove('open');return true;}
+  const appVisible=document.getElementById('appScreen').style.display!=='none';
+  if(appVisible){
+    if(activeNav!=='trans'){activeNav='trans';render();return true;} // ត្រឡប់ទៅផ្ទាំងប្រតិបត្តិការសិន
+    return false; // នៅផ្ទាំងប្រតិបត្តិការរួចហើយ → អនុញ្ញាតឱ្យចេញ
+  }
+  const authVisible=document.getElementById('authScreen').classList.contains('open');
+  if(authVisible){
+    if(document.getElementById('resetCard').style.display!=='none'){backToLoginCard();return true;}
+    if(document.getElementById('loginCard').style.display!=='none'){
+      document.getElementById('loginCard').style.display='none';
+      document.getElementById('splashView').style.display='flex';
+      return true; // ត្រឡប់ទៅ splash សិន
+    }
+    return false; // នៅ splash រួចហើយ → អនុញ្ញាតឱ្យចេញ
+  }
+  return false;
+}
+try{
+  history.pushState({app:1},'');
+  window.addEventListener('popstate',()=>{
+    if(handleBack()){history.pushState({app:1},'');} // នៅតែក្នុងកម្មវិធី — រុញ state ថ្មីរង់ចាំ Back បន្ទាប់
+  });
+}catch(_){}
+
+try{
+  startApp();
+}catch(e){
+  console.error('startApp error',e);
+  try{enterGuest(true);}catch(_){} // ការការពារ៖ កុំទុកអេក្រង់ទទេ
+}
+try{fetchLiveRate();}catch(_){} // ទាញអត្រាថ្មីស្វ័យប្រវត្តិ (បើបើក និងហួស ១២ ម៉ោង)
+
+// ---------- PWA offline — ដំណើរការពេល host លើ https (ឧ. GitHub Pages) ----------
+if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
