@@ -963,6 +963,58 @@ if(_t==='dark'||(_t==='auto'&&window.matchMedia&&matchMedia('(prefers-color-sche
   html[data-theme="dark"] .setrow,html[data-theme="dark"] .statsum,
   html[data-theme="dark"] .trendcard{box-shadow:0 6px 18px rgba(0,0,0,.35);}
 
+  /* ---------- v22: ថវិកា + ដដែលៗ + ស្លាយ + pull-to-refresh ---------- */
+  .budcard{
+    background:var(--bg); border-radius:20px; margin:12px 16px; padding:14px 16px;
+    box-shadow:0 6px 18px rgba(17,24,39,.06); cursor:pointer;
+  }
+  .budhead{display:flex; justify-content:space-between; align-items:center; font-size:13px; margin-bottom:4px;}
+  .budrow{margin:9px 0 0;}
+  .budtop{display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:4px;}
+  .budtop .over{color:#EF4444; font-weight:700;}
+  .budbar{height:8px; border-radius:6px; background:var(--bg2); overflow:hidden;}
+  .budbar div{height:100%; border-radius:6px; transition:width .5s;}
+  .budnote{font-size:11.5px; color:var(--muted); line-height:1.7; margin:0 0 10px;}
+  .budlist{max-height:42vh; overflow-y:auto; margin-bottom:10px; scrollbar-width:none;}
+  .budlist::-webkit-scrollbar{display:none;}
+  .budsetrow{display:flex; align-items:center; gap:8px; padding:7px 0; font-size:13.5px;}
+  .budsetrow span{flex:1; min-width:0;}
+  .budsetrow input{
+    width:118px; text-align:right; border:1px solid var(--line); border-radius:10px;
+    padding:9px; font-family:inherit; font-size:13.5px; background:var(--bg); color:var(--ink); outline:none;
+  }
+  .recurform select,.recurform input{
+    border:1px solid var(--line); border-radius:12px; padding:10px;
+    font-family:inherit; font-size:13.5px; background:var(--bg); color:var(--ink);
+    min-width:0; outline:none;
+  }
+  .rfrow{display:flex; gap:8px; margin-bottom:8px;}
+  .rfrow>*{flex:1;}
+  .rfnote{width:100%;}
+  .recuritem{
+    display:flex; align-items:center; gap:10px; padding:9px 0;
+    border-bottom:1px dashed var(--line); font-size:13.5px;
+  }
+  .recuritem .rmain{flex:1; min-width:0; line-height:1.6;}
+  .recuritem button{
+    border:none; background:#fee2e2; color:#EF4444; border-radius:8px;
+    width:28px; height:28px; cursor:pointer; flex-shrink:0;
+  }
+  .txwrap{position:relative; overflow:hidden;}
+  .txactions{position:absolute; right:0; top:0; bottom:0; width:120px; display:flex;}
+  .txactions button{flex:1; border:none; font-size:20px; cursor:pointer; color:#fff;}
+  .txactions .txedit{background:#3B82F6;}
+  .txactions .txdel{background:#EF4444;}
+  .txwrap .txrow{position:relative; z-index:1; background:var(--bg);}
+  .daycard .txwrap:last-child .txrow{border-bottom:none;}
+  #ptrInd{
+    height:0; overflow:hidden; display:flex; align-items:flex-end; justify-content:center;
+    font-size:12px; color:var(--muted); transition:height .2s; flex-shrink:0; padding-bottom:3px;
+  }
+  #ptrInd.ready{color:#059669; font-weight:700;}
+  html[data-theme="dark"] .recuritem button{background:rgba(239,68,68,.2);}
+  html[data-theme="dark"] .budcard{box-shadow:0 6px 18px rgba(0,0,0,.35);}
+
   /* Image viewer */
   .imgviewer{
     position:fixed; inset:0; background:rgba(0,0,0,.9); z-index:80;
@@ -1322,6 +1374,42 @@ if(_t==='dark'||(_t==='auto'&&window.matchMedia&&matchMedia('(prefers-color-sche
   </div>
 </div>
 
+<!-- 🎯 ថវិកាប្រចាំខែ -->
+<div class="pwoverlay" id="budgetOverlay">
+  <div class="authcard pwcard">
+    <h3>🎯 ថវិកាប្រចាំខែ (គិតជា ៛)</h3>
+    <p class="budnote">កំណត់ដែនកំណត់ចំណាយតាមប្រភេទ — ទុកទទេបើមិនកំណត់។ ចំណាយជា $ ត្រូវបម្លែងជា ៛ តាមអត្រាប្តូរប្រាក់។</p>
+    <div class="budlist" id="budList"></div>
+    <div class="pwbtns">
+      <button class="pwcancel" id="budCancel">បោះបង់</button>
+      <button class="authbtn" id="budSave" style="margin-top:0; flex:1;">រក្សាទុក</button>
+    </div>
+  </div>
+</div>
+
+<!-- 🔁 ប្រតិបត្តិការដដែលៗ -->
+<div class="pwoverlay" id="recurOverlay">
+  <div class="authcard pwcard">
+    <h3>🔁 ប្រតិបត្តិការដដែលៗ</h3>
+    <p class="budnote">បញ្ចូលដោយស្វ័យប្រវត្តិរាល់ខែ នៅថ្ងៃដែលកំណត់ (ពេលបើកកម្មវិធី)។ កំណត់ត្រាដែលបញ្ចូលដោយឯង មានសញ្ញា 🔁 ក្នុងកំណត់ចំណាំ។</p>
+    <div class="budlist" id="recurList"></div>
+    <div class="recurform">
+      <div class="rfrow">
+        <select id="rfType"><option value="expense">ចំណាយ</option><option value="income">ចំណូល</option></select>
+        <select id="rfCat"></select>
+      </div>
+      <div class="rfrow">
+        <input id="rfAmt" type="text" inputmode="decimal" placeholder="ចំនួន">
+        <select id="rfCur" style="flex:0 0 64px"><option>៛</option><option>$</option></select>
+        <input id="rfDay" type="number" min="1" max="31" placeholder="ថ្ងៃទី" style="flex:0 0 76px">
+      </div>
+      <input id="rfNote" type="text" placeholder="កំណត់ចំណាំ (ឧ. ប្រាក់ខែ)" class="rfnote">
+      <button class="authbtn" id="rfAdd" style="margin-top:10px">＋ បន្ថែម</button>
+    </div>
+    <div class="pwbtns"><button class="pwcancel" id="recurClose" style="flex:1">បិទ</button></div>
+  </div>
+</div>
+
 <div class="imgviewer" id="imgViewer"><img id="imgViewerImg" alt=""></div>
 </div>
 
@@ -1429,6 +1517,7 @@ async function fetchAll(){
     loadLocal();
     setSync('idle','ទិន្នន័យក្នុងម៉ាស៊ីន (មិនទាន់ភ្ជាប់)');
     render();
+    applyRecurring(); // បញ្ចូលប្រតិបត្តិការដដែលៗរបស់ខែនេះ (បើដល់ថ្ងៃ)
     return;
   }
   setSync('busy','កំពុងទាញយក...');
@@ -1442,6 +1531,7 @@ async function fetchAll(){
     transactions=data.transactions.sort((a,b)=>new Date(b.date)-new Date(a.date));
     cacheSave();
     setSync('ok','បានធ្វើសមកាលកម្ម');
+    applyRecurring(); // បញ្ចូលប្រតិបត្តិការដដែលៗរបស់ខែនេះ (បើដល់ថ្ងៃ)
   }catch(e){
     try{const c=localStorage.getItem(CACHE_KEY); if(c) transactions=JSON.parse(c);}catch(_){}
     setSync('err','មិនអាចភ្ជាប់បានទេ');
@@ -1621,10 +1711,14 @@ function renderDaily(c){
       c.innerHTML+=`<div class="emptybox anim"><span class="big">🔍</span>រកមិនឃើញ "${esc(searchQuery)}" ទេ</div>`;
       return;
     }
-  }else if(mtx.length===0){
-    c.innerHTML=`<div class="emptybox anim"><span class="big">🗒️</span>
-      មិនទាន់មានប្រតិបត្តិការក្នុងខែនេះទេ<br>ចុច ＋ ដើម្បីចាប់ផ្តើមកត់ត្រា</div>`;
-    return;
+  }else{
+    c.innerHTML+=renderBudgetCard(); // 🎯 កាតថវិកា (បើបានកំណត់)
+    if(mtx.length===0){
+      c.innerHTML+=`<div class="emptybox anim"><span class="big">🗒️</span>
+        មិនទាន់មានប្រតិបត្តិការក្នុងខែនេះទេ<br>ចុច ＋ ដើម្បីចាប់ផ្តើមកត់ត្រា</div>`;
+      hookBudgetCard();
+      return;
+    }
   }
   const groups={};
   mtx.forEach(t=>{const k=dateKey(t.date);(groups[k]=groups[k]||[]).push(t);});
@@ -1645,6 +1739,13 @@ function renderDaily(c){
       <span class="dayexp">${fmtMap(dExp)}</span>`;
     cardEl.appendChild(head);
     list.forEach(t=>{
+      // txwrap = ស្រទាប់ខាងក្រៅ (ប៊ូតុងកែ/លុបលាក់ខាងក្រោម) — txrow អូសទៅឆ្វេងបើកវា
+      const wrap=document.createElement('div');
+      wrap.className='txwrap';
+      wrap.innerHTML=`<div class="txactions">
+        <button class="txedit" title="កែ">✏️</button>
+        <button class="txdel" title="លុប">🗑️</button>
+      </div>`;
       const row=document.createElement('div');
       row.className='txrow';
       row.innerHTML=`
@@ -1666,12 +1767,25 @@ function renderDaily(c){
           document.getElementById('imgViewer').classList.add('open');
         });
       }
-      row.addEventListener('click',()=>openForm(t.type,t));
-      cardEl.appendChild(row);
+      row.addEventListener('click',()=>{
+        if(row._sw){row._sw=false;return;}        // ទើបអូសរួច — មិនបើក form ទេ
+        if(row._open){closeSwipe(row);return;}    // ចុចម្តងបិទស្លាយសិន
+        openForm(t.type,t);
+      });
+      wrap.querySelector('.txedit').addEventListener('click',e=>{
+        e.stopPropagation();closeSwipe(row);openForm(t.type,t);
+      });
+      wrap.querySelector('.txdel').addEventListener('click',e=>{
+        e.stopPropagation();deleteTxSwipe(t);
+      });
+      wrap.appendChild(row);
+      attachSwipe(row);
+      cardEl.appendChild(wrap);
     });
     c.appendChild(cardEl);
   });
   stagger(c);
+  hookBudgetCard();
 }
 
 // renderCalendar(c): បង្ហាញទិដ្ឋភាពប្រតិទិន — ក្រឡានីមួយៗបង្ហាញសរុបចំណូល/ចំណាយប្រចាំថ្ងៃ
@@ -1912,6 +2026,8 @@ function renderMore(c){
     rows+=`<div class="setrow" id="setConnect"><span class="l">🔗 ប្តូរ URL Google Sheets</span><span class="r">›</span></div>`;
   }
   rows+=`<div class="setrow" id="setTheme"><span class="l">🌓 រូបរាង (Theme)</span><span class="r">${THEME_LABELS[themeMode]} ›</span></div>`;
+  rows+=`<div class="setrow" id="setBudget"><span class="l">🎯 ថវិកាប្រចាំខែ</span><span class="r">›</span></div>`;
+  rows+=`<div class="setrow" id="setRecur"><span class="l">🔁 ប្រតិបត្តិការដដែលៗ</span><span class="r">›</span></div>`;
   rows+=`<div class="setrow" id="setRate"><span class="l">💱 អត្រាប្តូរប្រាក់</span><span class="r">1$ = ${fm(usdRate)}៛ ›</span></div>`;
   rows+=`<div class="setrow" id="setRateAuto"><span class="l">🔁 អត្រាស្វ័យប្រវត្តិ (តាមទីផ្សារ)</span><span class="r">${rateAuto?'បើក ✓':'បិទ'} ›</span></div>`;
   rows+=`<div class="setrow" id="setCsv"><span class="l">📤 ទាញចេញជា Excel (CSV)</span><span class="r">›</span></div>`;
@@ -1928,6 +2044,8 @@ function renderMore(c){
     applyTheme();
     render();
   });
+  on('setBudget',openBudgetModal);
+  on('setRecur',openRecurModal);
   on('setRate',()=>{
     const v=prompt('អត្រាប្តូរប្រាក់ (1$ = ?៛)\nការកំណត់ដោយដៃនឹងបិទអត្រាស្វ័យប្រវត្តិ',String(usdRate));
     if(v===null)return;
@@ -2867,6 +2985,269 @@ function startApp(){
   }
   showAuth(); // បង្ហាញផ្ទាំងចាប់ផ្តើម (splash) ជានិច្ច ពេលបើកថ្មី
 }
+// ═══════════════ 🎯 ថវិកាប្រចាំខែ ═══════════════
+const BUDGET_KEY='khmer-expense-budgets';
+function acctKey(){return guestMode?'guest':(currentUser||'guest');}
+function loadBudgets(){
+  try{return JSON.parse(localStorage.getItem(BUDGET_KEY)||'{}')[acctKey()]||{};}
+  catch(_){return{};}
+}
+function saveBudgets(b){
+  try{
+    const all=JSON.parse(localStorage.getItem(BUDGET_KEY)||'{}');
+    all[acctKey()]=b;
+    localStorage.setItem(BUDGET_KEY,JSON.stringify(all));
+  }catch(_){}
+}
+function renderBudgetCard(){
+  const b=loadBudgets();
+  const cats=Object.keys(b).filter(c=>b[c]>0);
+  if(!cats.length)return '';
+  const exp=monthTx().filter(t=>t.type==='expense');
+  let totB=0,totS=0,rows='';
+  cats.forEach(c=>{
+    const spent=toRiel(sumMap(exp.filter(t=>t.category===c),'expense'));
+    const lim=b[c];totB+=lim;totS+=spent;
+    const pct=lim?Math.min(100,Math.round(spent/lim*100)):0;
+    const col=spent>=lim?'#EF4444':(pct>=75?'#F59E0B':'#22C55E');
+    rows+=`<div class="budrow">
+      <div class="budtop">
+        <span>${CATEGORY_ICONS[c]||'📦'} ${esc(c)}</span>
+        <span class="${spent>=lim?'over':''}">${fm(spent)} / ${fm(lim)}៛</span>
+      </div>
+      <div class="budbar"><div style="width:${pct}%;background:${col}"></div></div>
+    </div>`;
+  });
+  const tpct=totB?Math.min(999,Math.round(totS/totB*100)):0;
+  return `<div class="budcard" id="budCard" title="ចុចដើម្បីកែថវិកា">
+    <div class="budhead"><b>🎯 ថវិកាខែនេះ</b>
+    <span style="color:${totS>=totB?'#EF4444':'var(--muted)'}">${tpct}% បានប្រើ</span></div>
+    ${rows}
+  </div>`;
+}
+function hookBudgetCard(){
+  const el=document.getElementById('budCard');
+  if(el)el.addEventListener('click',openBudgetModal);
+}
+function openBudgetModal(){
+  const b=loadBudgets();
+  const list=document.getElementById('budList');
+  list.innerHTML='';
+  EXPENSE_CATEGORIES.forEach(c=>{
+    const row=document.createElement('div');
+    row.className='budsetrow';
+    row.innerHTML=`<span>${CATEGORY_ICONS[c]||'📦'} ${esc(c)}</span>
+      <input type="text" inputmode="numeric" data-cat="${esc(c)}"
+        value="${b[c]>0?fm(b[c]).replace(/\.00$/,''):''}" placeholder="—">`;
+    list.appendChild(row);
+  });
+  document.getElementById('budgetOverlay').classList.add('open');
+}
+document.getElementById('budCancel').addEventListener('click',
+  ()=>document.getElementById('budgetOverlay').classList.remove('open'));
+document.getElementById('budgetOverlay').addEventListener('click',e=>{
+  if(e.target.id==='budgetOverlay')e.target.classList.remove('open');
+});
+document.getElementById('budSave').addEventListener('click',()=>{
+  const b={};
+  document.querySelectorAll('#budList input').forEach(inp=>{
+    const v=parseFloat(String(inp.value).replace(/,/g,''));
+    if(v>0)b[inp.dataset.cat]=v;
+  });
+  saveBudgets(b);
+  document.getElementById('budgetOverlay').classList.remove('open');
+  render();
+});
+
+// ═══════════════ 🔁 ប្រតិបត្តិការដដែលៗ ═══════════════
+const RECUR_KEY='khmer-expense-recurring';
+function loadRecur(){
+  try{return JSON.parse(localStorage.getItem(RECUR_KEY)||'{}')[acctKey()]||[];}
+  catch(_){return[];}
+}
+function saveRecur(rules){
+  try{
+    const all=JSON.parse(localStorage.getItem(RECUR_KEY)||'{}');
+    all[acctKey()]=rules;
+    localStorage.setItem(RECUR_KEY,JSON.stringify(all));
+  }catch(_){}
+}
+async function applyRecurring(){
+  const rules=loadRecur();
+  if(!rules.length)return;
+  const now=new Date();
+  const curM=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  const daysIn=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+  let changed=false;
+  for(const r of rules){
+    const day=Math.min(r.day||1,daysIn);
+    if(r.lastApplied===curM||now.getDate()<day)continue;
+    const id='rec-'+r.id+'-'+curM; // id ថេរតាមខែ — ការពារបញ្ចូលស្ទួន
+    if(transactions.some(t=>t.id===id)){r.lastApplied=curM;changed=true;continue;}
+    const entry={
+      id:id,type:r.type,category:r.category,amount:r.amount,
+      note:(r.note||'')+' 🔁',
+      date:new Date(now.getFullYear(),now.getMonth(),day,9,0,0).toISOString(),
+      currency:r.currency||'៛',image:'',
+    };
+    try{
+      if(!guestMode&&scriptUrl){await postToSheet({action:'add',transaction:entry});}
+      transactions.unshift(entry);
+      r.lastApplied=curM;changed=true;
+    }catch(_){}
+  }
+  if(changed){
+    saveRecur(rules);
+    transactions.sort((a,b)=>new Date(b.date)-new Date(a.date));
+    if(guestMode||!scriptUrl)saveLocal();else cacheSave();
+    render();
+  }
+}
+function fillRfCats(){
+  const sel=document.getElementById('rfCat');
+  const cats=document.getElementById('rfType').value==='income'?INCOME_CATEGORIES:EXPENSE_CATEGORIES;
+  sel.innerHTML=cats.map(c=>`<option value="${esc(c)}">${CATEGORY_ICONS[c]||''} ${esc(c)}</option>`).join('');
+}
+function renderRecurList(){
+  const list=document.getElementById('recurList');
+  const rules=loadRecur();
+  list.innerHTML=rules.length?'':'<p class="budnote" style="margin:4px 0">មិនទាន់មានទេ — បន្ថែមខាងក្រោម</p>';
+  rules.forEach(r=>{
+    const row=document.createElement('div');
+    row.className='recuritem';
+    row.innerHTML=`
+      <span>${CATEGORY_ICONS[r.category]||'📦'}</span>
+      <div class="rmain">${esc(r.note||r.category)}<br>
+        <small style="color:var(--muted)">${r.type==='income'?'ចំណូល':'ចំណាយ'} ·
+        ${fm(r.amount)}${r.currency} · ថ្ងៃទី ${r.day}</small></div>
+      <button data-id="${r.id}">✕</button>`;
+    row.querySelector('button').addEventListener('click',()=>{
+      saveRecur(loadRecur().filter(x=>x.id!==r.id));
+      renderRecurList();
+    });
+    list.appendChild(row);
+  });
+}
+function openRecurModal(){
+  fillRfCats();
+  renderRecurList();
+  document.getElementById('recurOverlay').classList.add('open');
+}
+document.getElementById('rfType').addEventListener('change',fillRfCats);
+document.getElementById('recurClose').addEventListener('click',
+  ()=>document.getElementById('recurOverlay').classList.remove('open'));
+document.getElementById('recurOverlay').addEventListener('click',e=>{
+  if(e.target.id==='recurOverlay')e.target.classList.remove('open');
+});
+document.getElementById('rfAdd').addEventListener('click',()=>{
+  const amt=parseFloat(String(document.getElementById('rfAmt').value).replace(/,/g,''));
+  const day=parseInt(document.getElementById('rfDay').value,10);
+  if(!amt||amt<=0){alert('សូមបញ្ចូលចំនួនទឹកប្រាក់');return;}
+  if(!day||day<1||day>31){alert('ថ្ងៃត្រូវនៅចន្លោះ 1-31');return;}
+  const rules=loadRecur();
+  rules.push({
+    id:Date.now().toString(36),
+    type:document.getElementById('rfType').value,
+    category:document.getElementById('rfCat').value,
+    amount:amt,
+    currency:document.getElementById('rfCur').value,
+    note:document.getElementById('rfNote').value.trim(),
+    day:day,
+    lastApplied:'',
+  });
+  saveRecur(rules);
+  document.getElementById('rfAmt').value='';
+  document.getElementById('rfNote').value='';
+  renderRecurList();
+  applyRecurring(); // បើថ្ងៃដល់ហើយ — បញ្ចូលភ្លាម
+});
+
+// ═══════════════ 👈 អូសជួរទៅឆ្វេង → កែ/លុប ═══════════════
+function closeSwipe(row){
+  row._open=false;
+  row.style.transition='transform .25s';
+  row.style.transform='translateX(0)';
+}
+function attachSwipe(row){
+  if(!('ontouchstart' in window))return; // desktop ប្រើការចុចធម្មតា
+  let sx=0,sy=0,dx=0,drag=false;
+  row.addEventListener('touchstart',e=>{
+    sx=e.touches[0].clientX;sy=e.touches[0].clientY;drag=false;
+  },{passive:true});
+  row.addEventListener('touchmove',e=>{
+    const mx=e.touches[0].clientX-sx,my=e.touches[0].clientY-sy;
+    if(!drag&&Math.abs(mx)>12&&Math.abs(mx)>Math.abs(my)*1.4)drag=true;
+    if(!drag)return;
+    dx=Math.max(-140,Math.min(0,(row._open?-120:0)+mx));
+    row.style.transition='none';
+    row.style.transform=`translateX(${dx}px)`;
+  },{passive:true});
+  row.addEventListener('touchend',()=>{
+    if(!drag)return;
+    row._sw=true; // ការពារ click បើក form ក្រោយអូស
+    row._open=dx<-60;
+    row.style.transition='transform .25s';
+    row.style.transform=row._open?'translateX(-120px)':'translateX(0)';
+    if(row._open){try{navigator.vibrate&&navigator.vibrate(8);}catch(_){}}
+    dx=row._open?-120:0;
+  });
+}
+async function deleteTxSwipe(t){
+  if(!confirm('លុប "'+(t.note||t.category)+'" ?'))return;
+  const prev=transactions;
+  transactions=transactions.filter(x=>x.id!==t.id);
+  render();
+  if(guestMode||!scriptUrl){
+    saveLocal();
+    setSync('idle','ទិន្នន័យរក្សាក្នុងម៉ាស៊ីន');
+    return;
+  }
+  setSync('busy','កំពុងលុប...');
+  try{
+    await postToSheet({action:'delete',id:t.id});
+    cacheSave();
+    setSync('ok','បានធ្វើសមកាលកម្ម');
+  }catch(e){
+    transactions=prev;render();
+    setSync('err','ការលុបបរាជ័យ');
+  }
+}
+
+// ═══════════════ ⬇️ ទាញចុះក្រោមដើម្បីធ្វើសមកាលកម្ម (Pull to refresh) ═══════════════
+(function(){
+  const el=document.getElementById('content');
+  if(!el)return;
+  const ptr=document.createElement('div');
+  ptr.id='ptrInd';
+  el.parentNode.insertBefore(ptr,el);
+  let sy=0,active=false;
+  el.addEventListener('touchstart',e=>{
+    if(el.scrollTop<=0){sy=e.touches[0].clientY;active=true;}
+    else active=false;
+  },{passive:true});
+  el.addEventListener('touchmove',e=>{
+    if(!active)return;
+    const pull=e.touches[0].clientY-sy;
+    if(pull>0&&el.scrollTop<=0){
+      const p=Math.min(90,pull*0.45);
+      ptr.style.height=p+'px';
+      ptr.textContent=p>55?'↻ លែងដៃដើម្បីធ្វើសមកាលកម្ម':'↓ ទាញចុះក្រោម...';
+      ptr.classList.toggle('ready',p>55);
+    }
+  },{passive:true});
+  el.addEventListener('touchend',()=>{
+    if(!active)return;
+    active=false;
+    const h=parseFloat(ptr.style.height)||0;
+    ptr.style.height='0px';
+    ptr.classList.remove('ready');
+    if(h>55){
+      try{navigator.vibrate&&navigator.vibrate(10);}catch(_){}
+      fetchAll();
+    }
+  });
+})();
+
 // ---------- Theme (ភ្លឺ / ងងឹត / តាមប្រព័ន្ធ) ----------
 const THEME_KEY='khmer-expense-theme';
 let themeMode=localStorage.getItem(THEME_KEY)||'auto';
@@ -2930,6 +3311,8 @@ function handleBack(){
   if(isOpen('calOverlay')){closeCal();return true;}
   if(isOpen('pwOverlay')){document.getElementById('pwOverlay').classList.remove('open');return true;}
   if(isOpen('urlOverlay')){document.getElementById('urlOverlay').classList.remove('open');return true;}
+  if(isOpen('budgetOverlay')){document.getElementById('budgetOverlay').classList.remove('open');return true;}
+  if(isOpen('recurOverlay')){document.getElementById('recurOverlay').classList.remove('open');return true;}
   const appVisible=document.getElementById('appScreen').style.display!=='none';
   if(appVisible){
     if(activeNav!=='trans'){activeNav='trans';render();return true;} // ត្រឡប់ទៅផ្ទាំងប្រតិបត្តិការសិន
