@@ -1533,16 +1533,27 @@ async function fetchAll(){
     setSync('ok','បានធ្វើសមកាលកម្ម');
     applyRecurring(); // បញ្ចូលប្រតិបត្តិការដដែលៗរបស់ខែនេះ (បើដល់ថ្ងៃ)
   }catch(e){
-    try{const c=localStorage.getItem(CACHE_KEY); if(c) transactions=JSON.parse(c);}catch(_){}
+    cacheLoad();
     setSync('err','មិនអាចភ្ជាប់បានទេ');
   }
   render();
 }
 // cacheSave(): រក្សាទុកច្បាប់ចម្លងប្រតិបត្តិការក្នុង localStorage ជា cache (ដកចោលរូបភាព ដើម្បីកុំឱ្យធំពេក)
+function cacheKeyFor(){return CACHE_KEY+'-'+acctKey();} // cache ដាច់ដោយឡែកតាមគណនី
 function cacheSave(){
   // រូបភាពអាចធំ — កុំរក្សា image ក្នុង cache ដើម្បីកុំឱ្យ localStorage ពេញ
   try{
-    localStorage.setItem(CACHE_KEY,JSON.stringify(transactions.map(t=>({...t,image:''}))));
+    localStorage.setItem(cacheKeyFor(),JSON.stringify(transactions.map(t=>({...t,image:''}))));
+  }catch(_){}
+}
+function cacheLoad(){
+  // បង្ហាញច្បាប់ចម្លងចាស់ភ្លាមៗ ខណៈកំពុងទាញទិន្នន័យថ្មីពី server (ឱ្យមើលទៅលឿន)
+  try{
+    const c=localStorage.getItem(cacheKeyFor());
+    if(c){
+      transactions=JSON.parse(c);
+      transactions.sort((a,b)=>new Date(b.date)-new Date(a.date));
+    }
   }catch(_){}
 }
 // loadLocal(): ផ្ទុកប្រតិបត្តិការពី localStorage មកដាក់ក្នុងអថេរ transactions (ប្រើពេលជា guest)
@@ -2516,7 +2527,15 @@ document.getElementById('connectBtn').addEventListener('click',()=>{
 const CRED_KEY='khmer-expense-cred';
 // ---------- ការចូល / ចុះឈ្មោះ ----------
 // showAuth(): បង្ហាញផ្ទាំងចូល/ចុះឈ្មោះគណនី, បំពេញអ៊ីមែល/ពាក្យសម្ងាត់ស្រាប់ បើធ្លាប់ "ចងចាំខ្ញុំ"
+let serverWarmed=false;
+function warmUpServer(){
+  // ដាស់ Apps Script ឱ្យភ្ញាក់មុន (cold start ១-៤ វិនាទី) ខណៈអ្នកប្រើកំពុងវាយពាក្យសម្ងាត់
+  if(serverWarmed||!scriptUrl)return;
+  serverWarmed=true;
+  try{fetch(scriptUrl+'?warmup=1').catch(()=>{});}catch(_){}
+}
 function showAuth(){
+  warmUpServer();
   document.getElementById('setupScreen').style.display='none';
   document.getElementById('appScreen').style.display='none';
   document.getElementById('authScreen').classList.add('open');
@@ -2534,24 +2553,37 @@ function showAuth(){
   }catch(_){}
 }
 // enterApp(): បន្ទាប់ពីចូល/ចុះឈ្មោះជោគជ័យ — បង្ហាញអេក្រង់សំខាន់ ហើយផ្ទុកទិន្នន័យពី Google Sheets
-async function enterApp(){
+async function enterApp(preTx){
   guestMode=false;
   saveSession(true);
+  const hasPre=Array.isArray(preTx);
+  if(hasPre){
+    // ទិន្នន័យភ្ជាប់មកជាមួយចម្លើយ login រួចហើយ — មិនចាំបាច់ហៅ server ម្តងទៀតទេ
+    transactions=preTx.sort((a,b)=>new Date(b.date)-new Date(a.date));
+    cacheSave();
+  }else{
+    cacheLoad(); // បង្ហាញទិន្នន័យចាស់ភ្លាម — server ធ្វើសមកាលកម្មពីក្រោយ
+  }
   document.getElementById('authScreen').classList.remove('open');
   document.getElementById('setupScreen').style.display='none';
   document.getElementById('appScreen').style.display='flex';
   render();
-  await offerUploadLocal();
-  fetchAll();
+  const uploaded=await offerUploadLocal();
+  if(hasPre&&!uploaded){
+    setSync('ok','បានធ្វើសមកាលកម្ម');
+    applyRecurring();
+  }else{
+    fetchAll(); // ទាញម្តងទៀត បើទើបផ្ទុកទិន្នន័យ guest ឡើង ឬគ្មានទិន្នន័យភ្ជាប់មក
+  }
 }
 // ផ្ទុកទិន្នន័យក្នុងម៉ាស៊ីនឡើងទៅគណនី (បើមាន)
 // offerUploadLocal(): បើមានទិន្នន័យចាស់ក្នុងម៉ាស៊ីន (ពេលធ្លាប់ជា guest) សួរថាតើផ្ទុកឡើងទៅគណនីថ្មីដែរឬទេ
 async function offerUploadLocal(){
   let local=[];
   try{local=JSON.parse(localStorage.getItem(LOCAL_TX_KEY)||'[]');}catch(_){}
-  if(!local.length) return;
+  if(!local.length) return false;
   if(!confirm('មានទិន្នន័យក្នុងម៉ាស៊ីន '+local.length+' កំណត់ត្រា — ផ្ទុកឡើងទៅគណនីរបស់អ្នក?')){
-    return; // ទុកក្នុងម៉ាស៊ីនដដែល — អាចផ្ទុកឡើងពេលក្រោយដោយ Restore
+    return false; // ទុកក្នុងម៉ាស៊ីនដដែល — អាចផ្ទុកឡើងពេលក្រោយដោយ Restore
   }
   setSync('busy','កំពុងផ្ទុកឡើង...');
   let ok=0;
@@ -2560,10 +2592,13 @@ async function offerUploadLocal(){
   }
   if(ok===local.length){localStorage.removeItem(LOCAL_TX_KEY);}
   alert('បានផ្ទុកឡើង '+ok+'/'+local.length+' កំណត់ត្រា');
+  return ok>0;
 }
 // forceLogout(reload): បោសសម្អាត token/session ចេញ ហើយត្រឡប់ទៅផ្ទាំងចូលគណនី (ឬ reload ទំព័រ)
 function forceLogout(){
   // ត្រឡប់ទៅផ្ទាំងដើមភ្លាមៗ ដោយមិន reload ទំព័រទាំងមូល — លឿនជាងច្រើន
+  let ck='';
+  try{ck=cacheKeyFor();}catch(_){} // ចាប់ key មុនលុបឈ្មោះគណនី
   authToken=''; currentUser=''; guestMode=false;
   transactions=[]; editingTx=null;
   activeNav='trans'; activeTab='daily';
@@ -2571,7 +2606,7 @@ function forceLogout(){
   document.getElementById('calOverlay').classList.remove('open');
   document.getElementById('pwOverlay').classList.remove('open');
   document.getElementById('urlOverlay').classList.remove('open');
-  localStorage.removeItem(CACHE_KEY);
+  try{if(ck)localStorage.removeItem(ck);}catch(_){}
   clearSession();
   showAuth();
 }
@@ -2631,10 +2666,10 @@ function googleSignIn(){
         msg.textContent='កំពុងផ្ទៀងផ្ទាត់ជាមួយ Google...';msg.style.display='block';
         try{
           // ផ្ញើ access token ទៅ server ឱ្យផ្ទៀងផ្ទាត់ដោយផ្ទាល់ជាមួយ Google (សុវត្ថិភាព)
-          const d=await postToSheet({action:'googleLogin',accessToken:resp.access_token});
+          const d=await postToSheet({action:'googleLogin',accessToken:resp.access_token,withData:true});
           authToken=d.token;currentUser=d.email;
           msg.style.display='none';
-          enterApp();
+          enterApp(d.transactions);
         }catch(e){
           msg.style.display='none';
           const msgs={
@@ -2679,6 +2714,7 @@ document.getElementById('authSubmit').addEventListener('click',async()=>{
     const d=await postToSheet({
       action:authMode==='login'?'login':'signup',
       email:email,password:pass,
+      withData:true, // ចូល + ទាញទិន្នន័យ ក្នុងសំណើតែមួយ (លឿនជាង)
     });
     authToken=d.token; // ក្នុង memory ប៉ុណ្ណោះ
     currentUser=d.email;
@@ -2687,7 +2723,7 @@ document.getElementById('authSubmit').addEventListener('click',async()=>{
     }else{
       localStorage.removeItem(CRED_KEY);
     }
-    enterApp();
+    enterApp(d.transactions); // ទិន្នន័យភ្ជាប់មកជាមួយ (Apps Script v8+)
   }catch(e){
     const msgs={
       'exists':'អ៊ីមែលនេះមានគណនីរួចហើយ — សូមចូលវិញ',
@@ -2958,6 +2994,7 @@ async function restoreAuth(sess){
   guestMode=false;
   authToken=sess.token;
   currentUser=sess.email||'';
+  cacheLoad(); // បង្ហាញទិន្នន័យចាស់ភ្លាម
   document.getElementById('authScreen').classList.remove('open');
   document.getElementById('setupScreen').style.display='none';
   document.getElementById('appScreen').style.display='flex';
