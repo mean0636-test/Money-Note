@@ -964,7 +964,8 @@ if(_t==='dark'||(_t==='auto'&&window.matchMedia&&matchMedia('(prefers-color-sche
   html[data-theme="dark"] .trendcard{box-shadow:0 6px 18px rgba(0,0,0,.35);}
 
   /* ---------- v29: កែរបារប្រភេទមួយជួរ + chip ទីតាំង ---------- */
-  #chips{flex-wrap:nowrap !important; width:100%;}
+  #chips{flex-wrap:nowrap !important; width:100%; scroll-snap-type:none;}
+  #chips .cattile{scroll-snap-align:none;}
   .catwrap{width:100%; min-width:0; overflow:hidden;}
   .cwband{height:auto; max-height:96px;}
   .txloc{
@@ -1578,6 +1579,16 @@ if(_t==='dark'||(_t==='auto'&&window.matchMedia&&matchMedia('(prefers-color-sche
   </div>
 </div>
 
+<!-- 📱 ឧបករណ៍បានចូលគណនី -->
+<div class="pwoverlay" id="deviceOverlay">
+  <div class="authcard pwcard">
+    <h3>📱 ឧបករណ៍បានចូលគណនី</h3>
+    <p class="budnote">ឧបករណ៍ទាំងអស់ដែលកំពុងចូលគណនីនេះ — ចុច ✕ ដើម្បីដកឧបករណ៍ណាមួយចេញ (session នោះនឹងផុតសុពលភាព)</p>
+    <div class="budlist" id="deviceList"><p class="budnote">កំពុងទាញយក...</p></div>
+    <div class="pwbtns"><button class="pwcancel" id="deviceClose" style="flex:1">បិទ</button></div>
+  </div>
+</div>
+
 <!-- 📅 ជ្រើសខែ/ឆ្នាំ -->
 <div class="pwoverlay" id="monthOverlay">
   <div class="authcard pwcard">
@@ -1667,7 +1678,7 @@ const CATEGORY_ICONS={
   'ផ្សេងៗ':'📦',
 };
 const INCOME_CATEGORIES=['ប្រាក់ខែ','លក់ដូរ','អាជីវកម្ម','ការវិនិយោគ','អំណោយ','ការប្រាក់','ជំនួយ','ផ្សេងៗ'];
-const EXPENSE_CATEGORIES=['អាហារ','ភេសជ្ជៈ','ទំនិញផ្ទះ','សម្លៀកបំពាក់','ដឹកជញ្ជូន','សាំង','ជួសជុលម៉ូតូ','ជួសជុលឡាន','គ្រឿងបន្លាស់ម៉ូតូ','គ្រឿងបន្លាស់ឡាន','ផ្ទះ','ភ្លើង-ទឹក','ទូរសព្ទ','អ៊ីនធឺណិត','Laptop','MacBook','សុខភាព','សម្ផស្ស','ការសិក្សា','កម្សាន្ត','ដំណើរកម្សាន្ត','កូន','សត្វចិញ្ចឹម','ផ្គត់ផ្គង់គ្រួសារ','បរិច្ចាគ','បំណុល','ផ្សេងៗ'];
+const EXPENSE_CATEGORIES=['អាហារ','ភេសជ្ជៈ','ទំនិញផ្ទះ','សម្លៀកបំពាក់','ដឹកជញ្ជូន','សាំង','ជួសជុលម៉ូតូ','ជួសជុលឡាន','គ្រឿងបន្លាស់ម៉ូតូ','គ្រឿងបន្លាស់ឡាន','ផ្ទះ','ភ្លើង-ទឹក','ទូរសព្ទ','អ៊ីនធឺណិត','Laptop','MacBook','សុខភាព','សម្ផស្ស','ការសិក្សា','កម្សាន្ត','ដំណើរកម្សាន្ត','កូន','សត្វចិញ្ចឹម','ផ្គត់ផ្គង់គ្រួសារ','សម្ភារៈកីឡា','ធានារ៉ាប់រង','ពន្ធ','បរិច្ចាគ','បំណុល','ផ្សេងៗ'];
 
 let scriptUrl=localStorage.getItem(URL_KEY)||'';
 let authToken=''; // token រក្សាតែក្នុង memory — ត្រូវចុច "ចូល" រាល់ពេលបើក
@@ -1706,18 +1717,18 @@ const SESS_KEY='khmer-expense-session';
 const REFRESH_KEY='khmer-expense-refresh';
 // រក្សា session — refresh ១-២ ដងនៅដដែល, ដងទី ៣ ត្រឡប់ទៅផ្ទាំងដើម
 // saveSession: រក្សា session (guest/auth, token, email) ក្នុង sessionStorage ដើម្បីមិនបាច់ចូលគណនីឡើងវិញពេល refresh
+// ចូលម្តង ចាំរហូត — session រក្សាក្នុង localStorage (បិទ/បើកកម្មវិធីនៅចាំដដែល)
 function saveSession(resetCount){
   try{
-    sessionStorage.setItem(SESS_KEY,JSON.stringify({
+    localStorage.setItem(SESS_KEY,JSON.stringify({
       mode:guestMode?'guest':'auth',token:authToken,email:currentUser,
     }));
-    if(resetCount)sessionStorage.setItem(REFRESH_KEY,'0');
   }catch(_){}
 }
-// clearSession: លុប session ចេញពី sessionStorage (ប្រើពេល logout ឬ token ផុតសុពលភាព)
+// clearSession: លុប session (ប្រើពេល logout ឬ token ផុតសុពលភាព)
 function clearSession(){
   try{
-    sessionStorage.removeItem(SESS_KEY);
+    localStorage.removeItem(SESS_KEY);
     sessionStorage.removeItem(REFRESH_KEY);
   }catch(_){}
 }
@@ -2288,6 +2299,9 @@ function renderMore(c){
   rows+=`<div class="setrow" id="setRecur"><span class="l">🔁 ប្រតិបត្តិការដដែលៗ</span><span class="r">›</span></div>`;
   rows+=`<div class="setrow" id="setLock"><span class="l">🔒 ចាក់សោកម្មវិធី (PIN/ក្រយៅដៃ)</span><span class="r">${loadLock()?'បើក ✅':'បិទ'} ›</span></div>`;
   rows+=`<div class="setrow" id="setLoc"><span class="l">📍 កត់ត្រាទីតាំង (GPS)</span><span class="r">${locEnabled()?'បើក ✅':'បិទ'} ›</span></div>`;
+  if(!guestMode&&scriptUrl){
+    rows+=`<div class="setrow" id="setDevices"><span class="l">📱 ឧបករណ៍បានចូលគណនី</span><span class="r">›</span></div>`;
+  }
   rows+=`<div class="setrow" id="setRate"><span class="l">💱 អត្រាប្តូរប្រាក់</span><span class="r">1$ = ${fm(usdRate)}៛ ›</span></div>`;
   rows+=`<div class="setrow" id="setRateAuto"><span class="l">🔁 អត្រាស្វ័យប្រវត្តិ (តាមទីផ្សារ)</span><span class="r">${rateAuto?'បើក ✓':'បិទ'} ›</span></div>`;
   rows+=`<div class="setrow" id="setCsv"><span class="l">📤 ទាញចេញជា Excel (CSV)</span><span class="r">›</span></div>`;
@@ -2303,6 +2317,7 @@ function renderMore(c){
   on('setBudget',openBudgetModal);
   on('setRecur',openRecurModal);
   on('setLock',openLockModal);
+  on('setDevices',openDevicesModal);
   on('setLoc',()=>{
     const nv=!locEnabled();
     localStorage.setItem(LOC_KEY,nv?'1':'');
@@ -2558,12 +2573,12 @@ const CATEGORY_COLORS={
 Object.assign(CATEGORY_ICONS,{
   'ទូរសព្ទ':'📞','អ៊ីនធឺណិត':'🌐','Laptop':'💻','MacBook':'🖥️',
   'ជួសជុលម៉ូតូ':'🔧','ជួសជុលឡាន':'🛠️','គ្រឿងបន្លាស់ម៉ូតូ':'🏍️','គ្រឿងបន្លាស់ឡាន':'🚗',
-  'ផ្គត់ផ្គង់គ្រួសារ':'👪',
+  'ផ្គត់ផ្គង់គ្រួសារ':'👪','សម្ភារៈកីឡា':'⚽','ធានារ៉ាប់រង':'🛡️','ពន្ធ':'🧾',
 });
 Object.assign(CATEGORY_COLORS,{
   'ទូរសព្ទ':'#38bdf8','អ៊ីនធឺណិត':'#06b6d4','Laptop':'#64748b','MacBook':'#94a3b8',
   'ជួសជុលម៉ូតូ':'#f59e0b','ជួសជុលឡាន':'#fb923c','គ្រឿងបន្លាស់ម៉ូតូ':'#84cc16','គ្រឿងបន្លាស់ឡាន':'#3b82f6',
-  'ផ្គត់ផ្គង់គ្រួសារ':'#f472b6',
+  'ផ្គត់ផ្គង់គ្រួសារ':'#f472b6','សម្ភារៈកីឡា':'#16a34a','ធានារ៉ាប់រង':'#0891b2','ពន្ធ':'#a16207',
 });
 // buildChips(): បង្កើតប៊ូតុងជ្រើសប្រភេទ (ចំណូល ឬ ចំណាយ អាស្រ័យ formType) ក្នុងសន្លឹកបញ្ចូល
 // របារជ្រើសប្រភេទផ្តេក៖ អូសឆ្វេង/ស្តាំ — ធាតុនៅកណ្តាល = ជ្រើសរើស (ដូចកង់ម៉ោង តែផ្តេក)
@@ -2591,8 +2606,18 @@ function buildChips(){
     let t=null;
     chips.addEventListener('scroll',()=>{
       cwMark();
-      clearTimeout(t);t=setTimeout(cwMark,90);
+      clearTimeout(t);
+      // អូសដោយសេរី (រអិលលឿន) → ពេលឈប់ ទាញខ្ជាប់ទៅធាតុជិតបំផុតដោយស្វ័យប្រវត្តិ
+      t=setTimeout(()=>{
+        cwMark();
+        if(chips._touching)return;
+        const cats=cwCats();
+        const i=Math.max(0,Math.min(cats.length-1,Math.round(chips.scrollLeft/CW_ITEM)));
+        if(Math.abs(chips.scrollLeft-i*CW_ITEM)>2)cwScrollTo(i,true);
+      },110);
     },{passive:true});
+    chips.addEventListener('touchstart',()=>{chips._touching=true;},{passive:true});
+    chips.addEventListener('touchend',()=>{chips._touching=false;},{passive:true});
   }
   document.querySelectorAll('.typetab').forEach(b=>b.classList.toggle('on',b.dataset.type===formType));
   document.querySelectorAll('.curtab').forEach(b=>b.classList.toggle('on',b.dataset.cur===selectedCurrency));
@@ -2979,7 +3004,7 @@ function googleSignIn(){
         msg.textContent='កំពុងផ្ទៀងផ្ទាត់ជាមួយ Google...';msg.style.display='block';
         try{
           // ផ្ញើ access token ទៅ server ឱ្យផ្ទៀងផ្ទាត់ដោយផ្ទាល់ជាមួយ Google (សុវត្ថិភាព)
-          const d=await postToSheet({action:'googleLogin',accessToken:resp.access_token,withData:true});
+          const d=await postToSheet({action:'googleLogin',accessToken:resp.access_token,withData:true,device:deviceName()});
           authToken=d.token;currentUser=d.email;
           msg.style.display='none';
           enterApp(d.transactions);
@@ -3027,6 +3052,7 @@ document.getElementById('authSubmit').addEventListener('click',async()=>{
     const d=await postToSheet({
       action:authMode==='login'?'login':'signup',
       email:email,password:pass,
+      device:deviceName(), // ឈ្មោះឧបករណ៍ — សម្រាប់បញ្ជី "ឧបករណ៍បានចូល"
       withData:true, // ចូល + ទាញទិន្នន័យ ក្នុងសំណើតែមួយ (លឿនជាង)
     });
     authToken=d.token; // ក្នុង memory ប៉ុណ្ណោះ
@@ -3276,6 +3302,13 @@ function showWelcome(){
   document.getElementById('welcomeView').style.display='flex';
 }
 document.getElementById('getStarted').addEventListener('click',()=>{
+  if(pendingResume){
+    // ធ្លាប់ចូលរួចហើយ → ចុចម្តងចូលភ្លាម (មិនសួរពាក្យសម្ងាត់ទេ)
+    const sess=pendingResume;pendingResume=null;
+    if(sess.mode==='guest')enterGuest(false);
+    else restoreAuth(sess);
+    return;
+  }
   if(scriptUrl)showWelcome(); // → ផ្ទាំងស្វាគមន៍ (ចូល / ចុះឈ្មោះ / Google)
   else enterGuest(true); // មិនទាន់ភ្ជាប់ server → ចូលប្រើភ្លាម (ទិន្នន័យក្នុងម៉ាស៊ីន)
 });
@@ -3325,22 +3358,103 @@ async function restoreAuth(sess){
 
 // startApp(): ចំណុចចាប់ផ្តើមកម្មវិធី — ពិនិត្យ session ចាស់ (អនុញ្ញាត refresh 2 ដង) ដើម្បីសម្រេចថាបង្ហាញ
 // ផ្ទាំងណា៖ បន្ត guest, បន្តគណនីចូល, ទំព័រចូលគណនី ឬទំព័រ setup (បើមិនទាន់ភ្ជាប់ URL)
+let pendingResume=null; // session ចាំស្តារ — រង់ចាំចុច "ចាប់ផ្តើម" (បើគ្មាន PIN)
 function startApp(){
-  // ស្តារ session ពេល refresh — អនុញ្ញាត ២ ដង, ដងទី ៣ ត្រឡប់ទៅផ្ទាំងដើមវិញ
   let sess=null;
-  try{sess=JSON.parse(sessionStorage.getItem(SESS_KEY)||'null');}catch(_){}
-  if(sess){
-    const n=(parseInt(sessionStorage.getItem(REFRESH_KEY)||'0',10)||0)+1;
-    if(n>=3){
-      clearSession(); // refresh ដងទី ៣ → ត្រឡប់ទៅដើម
-    }else{
-      try{sessionStorage.setItem(REFRESH_KEY,String(n));}catch(_){}
-      if(sess.mode==='guest'){enterGuest(false);return;}
-      if(sess.mode==='auth'&&sess.token&&scriptUrl){restoreAuth(sess);return;}
-    }
+  try{sess=JSON.parse(localStorage.getItem(SESS_KEY)||'null');}catch(_){}
+  // ធ្វើចំណាកស្រុក session ចាស់ពី sessionStorage (កំណែមុន)
+  if(!sess){
+    try{sess=JSON.parse(sessionStorage.getItem(SESS_KEY)||'null');}catch(_){}
+    if(sess){try{localStorage.setItem(SESS_KEY,JSON.stringify(sess));}catch(_){}}
   }
-  showAuth(); // បង្ហាញផ្ទាំងចាប់ផ្តើម (splash) ជានិច្ច ពេលបើកថ្មី
+  const valid=sess&&((sess.mode==='guest')||(sess.mode==='auth'&&sess.token&&scriptUrl));
+  if(valid){
+    if(loadLock()){
+      // មានសោ (PIN/ក្រយៅដៃ) — ដោះសោរួចហើយ (gateLock) → ចូលផ្ទាល់តែម្តង
+      if(sess.mode==='guest')enterGuest(false);
+      else restoreAuth(sess);
+      return;
+    }
+    // គ្មានសោ → បង្ហាញ splash, ចុច "ចាប់ផ្តើម" ម្តង → ចូលភ្លាម (មិនសួរពាក្យសម្ងាត់ទេ)
+    pendingResume=sess;
+    showAuth();
+    return;
+  }
+  showAuth(); // មិនទាន់ចូលគណនី → splash → welcome → ចូល/ចុះឈ្មោះ (តែម្តងគត់)
 }
+// ═══════════════ 📱 ឧបករណ៍បានចូលគណនី ═══════════════
+function deviceName(){
+  const ua=navigator.userAgent;
+  let os='ឧបករណ៍';
+  if(/android/i.test(ua))os='Android';
+  else if(/iphone/i.test(ua))os='iPhone';
+  else if(/ipad/i.test(ua))os='iPad';
+  else if(/windows/i.test(ua))os='Windows';
+  else if(/macintosh|mac os/i.test(ua))os='Mac';
+  let br='';
+  if(/edg\//i.test(ua))br='Edge';
+  else if(/chrome/i.test(ua))br='Chrome';
+  else if(/firefox/i.test(ua))br='Firefox';
+  else if(/safari/i.test(ua))br='Safari';
+  const pwa=((window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone)?' · App':'';
+  return os+(br?' · '+br:'')+pwa;
+}
+function devIcon(name){
+  if(/iphone|android/i.test(name))return '📱';
+  if(/ipad/i.test(name))return '📟';
+  if(/windows|mac/i.test(name))return '💻';
+  return '📱';
+}
+function fmtAgo(iso){
+  const t=new Date(iso).getTime();
+  if(!t)return '';
+  const d=Date.now()-t;
+  if(d<90000)return 'អម្បាញ់មិញ';
+  if(d<3600000)return Math.round(d/60000)+' នាទីមុន';
+  if(d<86400000)return Math.round(d/3600000)+' ម៉ោងមុន';
+  return Math.round(d/86400000)+' ថ្ងៃមុន';
+}
+async function openDevicesModal(){
+  document.getElementById('deviceOverlay').classList.add('open');
+  const list=document.getElementById('deviceList');
+  list.innerHTML='<p class="budnote">កំពុងទាញយក...</p>';
+  try{
+    const d=await postToSheet({action:'listDevices'});
+    list.innerHTML='';
+    if(!d.devices||!d.devices.length){
+      list.innerHTML='<p class="budnote">គ្មានទិន្នន័យ — ឧបករណ៍លេចឡើងក្រោយចូលគណនីម្តងទៀត (កំណែ Server v9+)</p>';
+      return;
+    }
+    d.devices.sort((a,b)=>new Date(b.lastSeen)-new Date(a.lastSeen));
+    d.devices.forEach(dev=>{
+      const row=document.createElement('div');
+      row.className='recuritem';
+      row.innerHTML=`
+        <span style="font-size:20px">${devIcon(dev.device)}</span>
+        <div class="rmain">${esc(dev.device)}${dev.current?' <b style="color:#059669">· ឧបករណ៍នេះ</b>':''}<br>
+          <small style="color:var(--muted)">ប្រើចុងក្រោយ៖ ${fmtAgo(dev.lastSeen)||'—'}</small></div>
+        ${dev.current?'':'<button data-id="'+esc(dev.id)+'">✕</button>'}`;
+      const btn=row.querySelector('button');
+      if(btn)btn.addEventListener('click',async()=>{
+        if(!confirm('ដកឧបករណ៍ "'+dev.device+'" ចេញពីគណនី?'))return;
+        btn.disabled=true;
+        try{
+          await postToSheet({action:'revokeDevice',id:dev.id});
+          openDevicesModal(); // ផ្ទុកបញ្ជីឡើងវិញ
+        }catch(e){alert('បរាជ័យ — សូមព្យាយាមម្តងទៀត');btn.disabled=false;}
+      });
+      list.appendChild(row);
+    });
+  }catch(e){
+    list.innerHTML='<p class="budnote">មិនអាចទាញយកបានទេ — សូមប្រាកដថា Apps Script ជា Version 9 (Deploy → New version)</p>';
+  }
+}
+document.getElementById('deviceClose').addEventListener('click',
+  ()=>document.getElementById('deviceOverlay').classList.remove('open'));
+document.getElementById('deviceOverlay').addEventListener('click',e=>{
+  if(e.target.id==='deviceOverlay')e.target.classList.remove('open');
+});
+
 // ═══════════════ 📍 កត់ត្រាទីតាំង (បិទ/បើកបានតាមចិត្ត — ការពារឯកជនភាព) ═══════════════
 const LOC_KEY='khmer-expense-location';
 function locEnabled(){return localStorage.getItem(LOC_KEY)==='1';}
@@ -4033,6 +4147,7 @@ function handleBack(){
   if(isOpen('calOverlay')){closeCal();return true;}
   if(isOpen('pwOverlay')){document.getElementById('pwOverlay').classList.remove('open');return true;}
   if(isOpen('urlOverlay')){document.getElementById('urlOverlay').classList.remove('open');return true;}
+  if(isOpen('deviceOverlay')){document.getElementById('deviceOverlay').classList.remove('open');return true;}
   if(isOpen('monthOverlay')){document.getElementById('monthOverlay').classList.remove('open');return true;}
   if(isOpen('themeOverlay')){document.getElementById('themeOverlay').classList.remove('open');return true;}
   if(isOpen('budgetOverlay')){document.getElementById('budgetOverlay').classList.remove('open');return true;}
