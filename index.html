@@ -963,6 +963,91 @@ if(_t==='dark'||(_t==='auto'&&window.matchMedia&&matchMedia('(prefers-color-sche
   html[data-theme="dark"] .setrow,html[data-theme="dark"] .statsum,
   html[data-theme="dark"] .trendcard{box-shadow:0 6px 18px rgba(0,0,0,.35);}
 
+  /* ---------- v28: welcome + របារប្រភេទផ្តេក + ជ្រើសខែ + theme popup + 📍 ---------- */
+  #welcomeView{
+    position:absolute; inset:0; display:none; z-index:5;
+    flex-direction:column; align-items:center; justify-content:center;
+    gap:13px; padding:32px 26px; text-align:center;
+  }
+  .wlogo{
+    width:88px; height:88px; border-radius:26px; background:rgba(255,255,255,.14);
+    backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+    display:flex; align-items:center; justify-content:center;
+    font-size:44px; color:#fff; box-shadow:0 14px 40px rgba(0,0,0,.25);
+  }
+  .wname{color:rgba(255,255,255,.92); font-size:17px; font-weight:700; letter-spacing:.3px;}
+  .wback{color:#fff; font-size:27px; font-weight:800; margin-top:16px;}
+  .wbtn{
+    width:100%; max-width:300px; padding:15px; border-radius:999px;
+    font-family:inherit; font-size:15.5px; font-weight:700; cursor:pointer;
+    transition:transform .15s;
+  }
+  .wbtn:active{transform:scale(.97);}
+  .wbtn.outline{background:transparent; border:1.6px solid rgba(255,255,255,.85); color:#fff; margin-top:14px;}
+  .wbtn.solid{background:#fff; border:none; color:#065f46; box-shadow:0 10px 28px rgba(0,0,0,.25);}
+  .wsocial{margin-top:20px; display:flex; flex-direction:column; align-items:center; gap:10px; color:rgba(255,255,255,.85); font-size:13px;}
+  .wsocialbtns{display:flex; gap:14px;}
+  .wsocialbtns button{
+    width:46px; height:46px; border-radius:50%; border:none; background:#fff;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    box-shadow:0 6px 18px rgba(0,0,0,.22);
+  }
+  .wguest{
+    margin-top:6px; background:none; border:none; color:rgba(255,255,255,.75);
+    font-family:inherit; font-size:12.5px; text-decoration:underline; cursor:pointer;
+  }
+  .mtbtn{background:none; border:none; color:#fff; font-family:inherit; cursor:pointer; padding:4px 6px;}
+  .mtbtn::after{content:' ▾'; font-size:11px; opacity:.9;}
+  .catwrap{position:relative;}
+  #chips{
+    display:flex; gap:0; overflow-x:auto; scroll-snap-type:x mandatory;
+    padding:6px 0 2px; scrollbar-width:none; -webkit-overflow-scrolling:touch;
+    overscroll-behavior-x:contain;
+  }
+  #chips::-webkit-scrollbar{display:none;}
+  #chips .cattile{
+    flex:0 0 84px; width:84px; scroll-snap-align:center;
+    display:flex; flex-direction:column; align-items:center; gap:5px;
+    background:none; border:none; cursor:pointer; padding:6px 0;
+    opacity:.4; transform:scale(.86); transition:opacity .2s, transform .2s;
+    font-family:inherit;
+  }
+  #chips .cattile.selected{opacity:1; transform:scale(1.05);}
+  #chips .cattile .catbox{
+    width:44px; height:44px; border-radius:14px; display:flex;
+    align-items:center; justify-content:center; font-size:22px; color:#fff;
+  }
+  #chips .cattile .catname{font-size:11px; color:var(--ink); white-space:nowrap;}
+  .cwpad{flex:0 0 calc(50% - 42px);}
+  .cwband{
+    position:absolute; left:50%; top:2px; bottom:0; width:90px;
+    transform:translateX(-50%); border:2px solid rgba(16,185,129,.5);
+    border-radius:16px; pointer-events:none; background:rgba(16,185,129,.06);
+  }
+  .mpyear{display:flex; align-items:center; justify-content:center; gap:20px; margin-bottom:12px;}
+  .mpyear button{
+    width:34px; height:34px; border-radius:50%; border:1px solid var(--line);
+    background:var(--bg); color:var(--ink); font-size:16px; cursor:pointer;
+  }
+  .mpyear b{font-size:16px;}
+  .mpgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px;}
+  .mpgrid button{
+    padding:11px 4px; border-radius:12px; border:1px solid var(--line);
+    background:var(--bg); color:var(--ink); font-family:inherit; font-size:13px; cursor:pointer;
+  }
+  .mpgrid button.today{border-color:#10b981; color:#059669; font-weight:700;}
+  .mpgrid button.cur{background:linear-gradient(135deg,#059669,#10b981); color:#fff; border:none; font-weight:700;}
+  .themeopts{display:flex; flex-direction:column; gap:8px; margin-bottom:12px;}
+  .themeopt{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:13px 14px; border-radius:12px; border:1px solid var(--line);
+    background:var(--bg); color:var(--ink); font-family:inherit; font-size:14px; cursor:pointer;
+  }
+  .themeopt.cur{border-color:#10b981; background:rgba(16,185,129,.08);}
+  .themeopt b{color:#059669;}
+  .txloc{cursor:pointer;}
+  .photoRow{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+
   /* ---------- v26: widget + សោ + ✓ pop ---------- */
   .quickcard{
     display:flex; align-items:center; background:var(--bg); border-radius:20px;
@@ -1116,7 +1201,22 @@ if(_t==='dark'||(_t==='auto'&&window.matchMedia&&matchMedia('(prefers-color-sche
       <h1>សៀវភៅចំណូល-ចំណាយ</h1>
       <p>គ្រប់គ្រងលុយកាក់របស់អ្នក ងាយស្រួល ទាន់សម័យ និងមានសុវត្ថិភាព</p>
       <button class="getstarted" id="getStarted">ចាប់ផ្តើម</button>
-      <button class="haveacct" id="haveAcct">ខ្ញុំមានគណនីរួចហើយ</button>
+    </div>
+
+    <!-- Welcome (ក្រោយចុច "ចាប់ផ្តើម") — រចនាតាមគំរូ Sign in/Sign up ទំនើប -->
+    <div id="welcomeView">
+      <div class="wlogo">៛</div>
+      <div class="wname">សៀវភៅចំណូល-ចំណាយ</div>
+      <div class="wback">សូមស្វាគមន៍</div>
+      <button class="wbtn outline" id="wSignin">ចូលគណនី</button>
+      <button class="wbtn solid" id="wSignup">ចុះឈ្មោះ</button>
+      <div class="wsocial">
+        <span>ឬចូលតាមបណ្តាញសង្គម</span>
+        <div class="wsocialbtns">
+          <button id="wGoogle" title="ចូលដោយ Google"><span style="font-size:20px; font-weight:800; color:#4285F4">G</span></button>
+        </div>
+      </div>
+      <button class="wguest" id="wGuest">ប្រើដោយមិនចូលគណនី (ទិន្នន័យក្នុងម៉ាស៊ីន)</button>
     </div>
 
     <div class="authcard" id="loginCard">
@@ -1309,9 +1409,7 @@ if(_t==='dark'||(_t==='auto'&&window.matchMedia&&matchMedia('(prefers-color-sche
       </div>
       <div class="monthnav">
         <div class="left">
-          <button class="navarrow" id="prevMonth">‹</button>
-          <span class="monthtitle" id="monthTitle"></span>
-          <button class="navarrow" id="nextMonth">›</button>
+          <button class="monthtitle mtbtn" id="monthTitle" title="ជ្រើសខែ"></button>
         </div>
         <div class="iconbtns">
           <span class="syncdot" id="syncDot"></span>
@@ -1398,7 +1496,10 @@ if(_t==='dark'||(_t==='auto'&&window.matchMedia&&matchMedia('(prefers-color-sche
 
     <div class="frow" style="align-items:flex-start;">
       <span class="catlabel">ប្រភេទ</span>
-      <div class="rowmain"><div class="chips" id="chips"></div></div>
+      <div class="rowmain catwrap">
+        <div class="cwband"></div>
+        <div class="chips" id="chips"></div>
+      </div>
     </div>
 
     <div class="frow">
@@ -1413,7 +1514,9 @@ if(_t==='dark'||(_t==='auto'&&window.matchMedia&&matchMedia('(prefers-color-sche
       <span class="rowicon clip">📎</span>
       <div class="rowmain photoRow">
         <input type="file" id="photoInput" accept="image/*" hidden>
-        <button class="photoBtn" id="photoBtn">📷 បន្ថែមរូបភាព</button>
+        <input type="file" id="cameraInput" accept="image/*" capture="environment" hidden>
+        <button class="photoBtn" id="photoBtn">🖼️ រូបភាព</button>
+        <button class="photoBtn" id="cameraBtn">📷 ថតរូប</button>
         <div id="photoPreview">
           <img id="photoImg" alt="">
           <button id="photoRemove">✕</button>
@@ -1460,6 +1563,29 @@ if(_t==='dark'||(_t==='auto'&&window.matchMedia&&matchMedia('(prefers-color-sche
       <button class="pwcancel" id="lockDisable" style="display:none; color:#EF4444;">បិទសោ</button>
       <button class="authbtn" id="lockSave" style="margin-top:0; flex:1;">រក្សាទុក</button>
     </div>
+  </div>
+</div>
+
+<!-- 📅 ជ្រើសខែ/ឆ្នាំ -->
+<div class="pwoverlay" id="monthOverlay">
+  <div class="authcard pwcard">
+    <h3>📅 ជ្រើសខែ</h3>
+    <div class="mpyear">
+      <button id="mpPrev">‹</button>
+      <b id="mpYear"></b>
+      <button id="mpNext">›</button>
+    </div>
+    <div class="mpgrid" id="mpGrid"></div>
+    <div class="pwbtns"><button class="pwcancel" id="mpClose" style="flex:1">បិទ</button></div>
+  </div>
+</div>
+
+<!-- 🌓 ជ្រើសរូបរាង -->
+<div class="pwoverlay" id="themeOverlay">
+  <div class="authcard pwcard">
+    <h3>🌓 រូបរាង (Theme)</h3>
+    <div class="themeopts" id="themeOpts"></div>
+    <div class="pwbtns"><button class="pwcancel" id="themeClose" style="flex:1">បិទ</button></div>
   </div>
 </div>
 
@@ -1529,7 +1655,7 @@ const CATEGORY_ICONS={
   'ផ្សេងៗ':'📦',
 };
 const INCOME_CATEGORIES=['ប្រាក់ខែ','លក់ដូរ','អាជីវកម្ម','ការវិនិយោគ','អំណោយ','ការប្រាក់','ជំនួយ','ផ្សេងៗ'];
-const EXPENSE_CATEGORIES=['អាហារ','ភេសជ្ជៈ','ទំនិញផ្ទះ','សម្លៀកបំពាក់','ដឹកជញ្ជូន','សាំង','ផ្ទះ','ភ្លើង-ទឹក','ទូរសព្ទ-Net','សុខភាព','សម្ផស្ស','ការសិក្សា','កម្សាន្ត','ដំណើរកម្សាន្ត','កូន','សត្វចិញ្ចឹម','បរិច្ចាគ','បំណុល','ផ្សេងៗ'];
+const EXPENSE_CATEGORIES=['អាហារ','ភេសជ្ជៈ','ទំនិញផ្ទះ','សម្លៀកបំពាក់','ដឹកជញ្ជូន','សាំង','ជួសជុលម៉ូតូ','ជួសជុលឡាន','គ្រឿងបន្លាស់ម៉ូតូ','គ្រឿងបន្លាស់ឡាន','ផ្ទះ','ភ្លើង-ទឹក','ទូរសព្ទ','អ៊ីនធឺណិត','Laptop','MacBook','សុខភាព','សម្ផស្ស','ការសិក្សា','កម្សាន្ត','ដំណើរកម្សាន្ត','កូន','សត្វចិញ្ចឹម','ផ្គត់ផ្គង់គ្រួសារ','បរិច្ចាគ','បំណុល','ផ្សេងៗ'];
 
 let scriptUrl=localStorage.getItem(URL_KEY)||'';
 let authToken=''; // token រក្សាតែក្នុង memory — ត្រូវចុច "ចូល" រាល់ពេលបើក
@@ -1737,11 +1863,13 @@ function compressImage(file){
           canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
           return canvas.toDataURL('image/jpeg',quality);
         };
-        // Google Sheet cell កំណត់ ~50,000 តួអក្សរ
-        let out=tryCompress(480,.6);
-        if(out.length>45000) out=tryCompress(360,.45);
-        if(out.length>45000) out=tryCompress(280,.35);
-        if(out.length>45000) return reject(new Error('too big'));
+        // Google Sheet cell កំណត់ ~50,000 តួអក្សរ — បន្ថយបន្តរហូតចូល (រូបធំប៉ុនណាក៏បាន)
+        let out=tryCompress(640,.7);
+        const steps=[[520,.6],[440,.5],[380,.45],[320,.38],[260,.32],[210,.27],[170,.22],[130,.18]];
+        for(const st of steps){
+          if(out.length<=45000)break;
+          out=tryCompress(st[0],st[1]);
+        }
         resolve(out);
       };
       img.onerror=reject;
@@ -1855,7 +1983,7 @@ function renderDaily(c){
         <div class="txmid">
           ${t.image?`<img class="txthumb" src="${t.image}">`:''}
           <div class="txmidtext">
-            <div class="txnote">${t.note?esc(t.note):'&nbsp;'}</div>
+            <div class="txnote">${fmtNoteHtml(t.note)}</div>
             <div class="txsub">សាច់ប្រាក់</div>
           </div>
         </div>
@@ -1868,7 +1996,9 @@ function renderDaily(c){
           document.getElementById('imgViewer').classList.add('open');
         });
       }
-      row.addEventListener('click',()=>{
+      row.addEventListener('click',e=>{
+        const lc=e.target.closest('.txloc');
+        if(lc){window.open('https://maps.google.com/?q='+lc.dataset.ll,'_blank');return;} // 📍 → បើកផែនទី
         if(row._sw){row._sw=false;return;}        // ទើបអូសរួច — មិនបើក form ទេ
         if(row._open){closeSwipe(row);return;}    // ចុចម្តងបិទស្លាយសិន
         openForm(t.type,t);
@@ -2126,10 +2256,14 @@ function renderMore(c){
     rows+=`<div class="setrow" id="setRefresh"><span class="l">🔄 ទាញយកទិន្នន័យឡើងវិញ</span><span class="r">›</span></div>`;
     rows+=`<div class="setrow" id="setConnect"><span class="l">🔗 ប្តូរ URL Google Sheets</span><span class="r">›</span></div>`;
   }
+  if(!((window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone)){
+    rows+=`<div class="setrow" id="setInstall"><span class="l">📲 ដំឡើងជា App លើទូរសព្ទ</span><span class="r">›</span></div>`;
+  }
   rows+=`<div class="setrow" id="setTheme"><span class="l">🌓 រូបរាង (Theme)</span><span class="r">${THEME_LABELS[themeMode]} ›</span></div>`;
   rows+=`<div class="setrow" id="setBudget"><span class="l">🎯 ថវិកាប្រចាំខែ</span><span class="r">›</span></div>`;
   rows+=`<div class="setrow" id="setRecur"><span class="l">🔁 ប្រតិបត្តិការដដែលៗ</span><span class="r">›</span></div>`;
   rows+=`<div class="setrow" id="setLock"><span class="l">🔒 ចាក់សោកម្មវិធី (PIN/ក្រយៅដៃ)</span><span class="r">${loadLock()?'បើក ✅':'បិទ'} ›</span></div>`;
+  rows+=`<div class="setrow" id="setLoc"><span class="l">📍 កត់ត្រាទីតាំង (GPS)</span><span class="r">${locEnabled()?'បើក ✅':'បិទ'} ›</span></div>`;
   rows+=`<div class="setrow" id="setRate"><span class="l">💱 អត្រាប្តូរប្រាក់</span><span class="r">1$ = ${fm(usdRate)}៛ ›</span></div>`;
   rows+=`<div class="setrow" id="setRateAuto"><span class="l">🔁 អត្រាស្វ័យប្រវត្តិ (តាមទីផ្សារ)</span><span class="r">${rateAuto?'បើក ✓':'បិទ'} ›</span></div>`;
   rows+=`<div class="setrow" id="setCsv"><span class="l">📤 ទាញចេញជា Excel (CSV)</span><span class="r">›</span></div>`;
@@ -2140,15 +2274,19 @@ function renderMore(c){
 
   const on=(id,fn)=>{const el=document.getElementById(id);if(el)el.addEventListener('click',fn);};
   on('setConnect',openUrlModal);
-  on('setTheme',()=>{
-    themeMode=themeMode==='auto'?'light':(themeMode==='light'?'dark':'auto');
-    localStorage.setItem(THEME_KEY,themeMode);
-    applyTheme();
-    render();
-  });
+  on('setInstall',installApp);
+  on('setTheme',openThemeModal);
   on('setBudget',openBudgetModal);
   on('setRecur',openRecurModal);
   on('setLock',openLockModal);
+  on('setLoc',()=>{
+    const nv=!locEnabled();
+    localStorage.setItem(LOC_KEY,nv?'1':'');
+    if(nv&&navigator.geolocation){
+      navigator.geolocation.getCurrentPosition(()=>{},()=>{}); // សុំសិទ្ធិមុន
+    }
+    render();
+  });
   on('setRate',()=>{
     const v=prompt('អត្រាប្តូរប្រាក់ (1$ = ?៛)\nការកំណត់ដោយដៃនឹងបិទអត្រាស្វ័យប្រវត្តិ',String(usdRate));
     if(v===null)return;
@@ -2392,24 +2530,65 @@ const CATEGORY_COLORS={
   'កម្សាន្ត':'#a78bfa','ដំណើរកម្សាន្ត':'#22d3ee','កូន':'#fda4af','សត្វចិញ្ចឹម':'#a3e635',
   'បរិច្ចាគ':'#fbbf24','បំណុល':'#94a3b8','ផ្សេងៗ':'#9aa2af',
 };
+// ប្រភេទបន្ថែម (v28) — 'ទូរសព្ទ-Net' ចាស់នៅរក្សាទុកសម្រាប់ទិន្នន័យចាស់
+Object.assign(CATEGORY_ICONS,{
+  'ទូរសព្ទ':'📞','អ៊ីនធឺណិត':'🌐','Laptop':'💻','MacBook':'🖥️',
+  'ជួសជុលម៉ូតូ':'🔧','ជួសជុលឡាន':'🛠️','គ្រឿងបន្លាស់ម៉ូតូ':'🏍️','គ្រឿងបន្លាស់ឡាន':'🚗',
+  'ផ្គត់ផ្គង់គ្រួសារ':'👪',
+});
+Object.assign(CATEGORY_COLORS,{
+  'ទូរសព្ទ':'#38bdf8','អ៊ីនធឺណិត':'#06b6d4','Laptop':'#64748b','MacBook':'#94a3b8',
+  'ជួសជុលម៉ូតូ':'#f59e0b','ជួសជុលឡាន':'#fb923c','គ្រឿងបន្លាស់ម៉ូតូ':'#84cc16','គ្រឿងបន្លាស់ឡាន':'#3b82f6',
+  'ផ្គត់ផ្គង់គ្រួសារ':'#f472b6',
+});
 // buildChips(): បង្កើតប៊ូតុងជ្រើសប្រភេទ (ចំណូល ឬ ចំណាយ អាស្រ័យ formType) ក្នុងសន្លឹកបញ្ចូល
+// របារជ្រើសប្រភេទផ្តេក៖ អូសឆ្វេង/ស្តាំ — ធាតុនៅកណ្តាល = ជ្រើសរើស (ដូចកង់ម៉ោង តែផ្តេក)
+const CW_ITEM=84;
+function cwCats(){return formType==='income'?INCOME_CATEGORIES:EXPENSE_CATEGORIES;}
 function buildChips(){
   const chips=document.getElementById('chips');
   chips.innerHTML='';
-  const cats=formType==='income'?INCOME_CATEGORIES:EXPENSE_CATEGORIES;
-  cats.forEach(cat=>{
+  const cats=cwCats();
+  const padL=document.createElement('div');padL.className='cwpad';
+  const padR=document.createElement('div');padR.className='cwpad';
+  chips.appendChild(padL);
+  cats.forEach((cat,i)=>{
     const tile=document.createElement('button');
-    tile.className='cattile'+(selectedCategory===cat?' selected':'');
+    tile.className='cattile';
     tile.innerHTML=`
       <span class="catbox" style="background:${CATEGORY_COLORS[cat]||'#9aa2af'}">${CATEGORY_ICONS[cat]||'📦'}</span>
       <span class="catname">${cat}</span>`;
-    tile.addEventListener('click',()=>{selectedCategory=cat;buildChips();});
+    tile.addEventListener('click',()=>cwScrollTo(i,true));
     chips.appendChild(tile);
   });
+  chips.appendChild(padR);
+  if(!chips._wired){
+    chips._wired=true;
+    let t=null;
+    chips.addEventListener('scroll',()=>{
+      cwMark();
+      clearTimeout(t);t=setTimeout(cwMark,90);
+    },{passive:true});
+  }
   document.querySelectorAll('.typetab').forEach(b=>b.classList.toggle('on',b.dataset.type===formType));
   document.querySelectorAll('.curtab').forEach(b=>b.classList.toggle('on',b.dataset.cur===selectedCurrency));
   const save=document.getElementById('saveBtn');
   save.classList.toggle('income',formType==='income');
+  const idx=Math.max(0,cats.indexOf(selectedCategory));
+  requestAnimationFrame(()=>{cwScrollTo(idx,false);cwMark();});
+}
+function cwScrollTo(i,smooth){
+  document.getElementById('chips').scrollTo({left:i*CW_ITEM,behavior:smooth?'smooth':'auto'});
+}
+function cwMark(){
+  const chips=document.getElementById('chips');
+  const cats=cwCats();
+  const i=Math.max(0,Math.min(cats.length-1,Math.round(chips.scrollLeft/CW_ITEM)));
+  chips.querySelectorAll('.cattile').forEach((el,j)=>el.classList.toggle('selected',j===i));
+  if(selectedCategory!==cats[i]){
+    selectedCategory=cats[i];
+    try{navigator.vibrate&&navigator.vibrate(4);}catch(_){}
+  }
 }
 // setPhotoPreview(): បង្ហាញ/លាក់រូបភាពមើលជាមុន អាស្រ័យលើថាតើមានរូបភាព (photoData) ឬអត់
 function setPhotoPreview(){
@@ -2462,20 +2641,25 @@ document.querySelectorAll('.curtab').forEach(b=>{
 });
 // ចុចប៊ូតុង "បន្ថែមរូបភាព" → បើកប្រអប់ជ្រើសរូបភាពរបស់ទូរស័ព្ទ/កុំព្យូទ័រ
 document.getElementById('photoBtn').addEventListener('click',()=>document.getElementById('photoInput').click());
-// ពេលជ្រើសរូបភាពរួច៖ បង្រួម (compressImage) រួចបង្ហាញរូបភាពមើលជាមុន
-document.getElementById('photoInput').addEventListener('change',async e=>{
-  const file=e.target.files[0];
-  e.target.value='';
-  if(!file) return;
+document.getElementById('cameraBtn').addEventListener('click',()=>document.getElementById('cameraInput').click());
+// ពេលជ្រើស/ថតរូបរួច៖ បង្រួមស្វ័យប្រវត្តិ (រូបធំប៉ុនណាក៏ចូលបាន) រួចបង្ហាញមើលជាមុន
+async function handlePhotoFile(file){
+  if(!file)return;
   const errEl=document.getElementById('errMsg');
   try{
     photoData=await compressImage(file);
     errEl.style.display='none';
     setPhotoPreview();
   }catch(err){
-    errEl.textContent='រូបភាពធំពេក — សូមសាករូបផ្សេង';
+    errEl.textContent='មិនអាចអានរូបភាពនេះបានទេ — សូមសាករូបផ្សេង';
     errEl.style.display='block';
   }
+}
+document.getElementById('photoInput').addEventListener('change',e=>{
+  const f=e.target.files[0];e.target.value='';handlePhotoFile(f);
+});
+document.getElementById('cameraInput').addEventListener('change',e=>{
+  const f=e.target.files[0];e.target.value='';handlePhotoFile(f);
 });
 // ចុច ✕ លើរូបភាព → លុបរូបភាពដែលបានជ្រើសចេញពីទម្រង់
 document.getElementById('photoRemove').addEventListener('click',()=>{photoData='';setPhotoPreview();});
@@ -2489,12 +2673,8 @@ document.getElementById('overlay').addEventListener('click',e=>{if(e.target.id==
 document.getElementById('fabBtn').addEventListener('click',()=>openForm('expense'));
 // ចុចប៊ូតុង ⟳ → ទាញយកទិន្នន័យឡើងវិញពី Google Sheets
 // ចុចព្រួញ ‹ / › → ប្តូរខែកំពុងមើលថយក្រោយ ឬទៅមុខ រួច render ឡើងវិញ
-document.getElementById('prevMonth').addEventListener('click',()=>{
-  viewMonth=new Date(viewMonth.getFullYear(),viewMonth.getMonth()-1,1);render();
-});
-document.getElementById('nextMonth').addEventListener('click',()=>{
-  viewMonth=new Date(viewMonth.getFullYear(),viewMonth.getMonth()+1,1);render();
-});
+// ចុចឈ្មោះខែ → ផ្ទាំងជ្រើសខែ/ឆ្នាំដោយផ្ទាល់
+document.getElementById('monthTitle').addEventListener('click',openMonthModal);
 // setTab(name): ប្តូរផ្ទាំងកំពុងបង្ហាញ (daily/calendar/monthly/total) ហើយ render ឡើងវិញ
 function setTab(name){
   activeTab=name;
@@ -2544,6 +2724,11 @@ document.getElementById('saveBtn').addEventListener('click',async()=>{
   };
   const btn=document.getElementById('saveBtn');
   btn.disabled=true;btn.textContent='កំពុងរក្សាទុក...';
+  // 📍 កត់ត្រាទីតាំង (បើបើកក្នុងម៉ឺនុយ ផ្សេងៗ) — សម្រាប់កំណត់ត្រាថ្មីប៉ុណ្ណោះ
+  if(!isEdit&&locEnabled()&&!/📍\(/.test(entry.note)){
+    const ll=await getLocation();
+    if(ll)entry.note=(entry.note?entry.note+' ':'')+'📍('+ll+')';
+  }
   setSync('busy','កំពុងផ្ញើ...');
   try{
     if(guestMode){
@@ -2636,6 +2821,7 @@ function warmUpServer(){
 }
 function showAuth(){
   warmUpServer();
+  try{document.getElementById('welcomeView').style.display='none';}catch(_){}
   document.getElementById('setupScreen').style.display='none';
   document.getElementById('appScreen').style.display='none';
   document.getElementById('authScreen').classList.add('open');
@@ -3053,17 +3239,23 @@ function getWheelTime(){
 // showLoginCard(mode): បង្ហាញកាតចូល/ចុះឈ្មោះគណនី ជំនួសផ្ទាំង splash ដំបូង
 function showLoginCard(mode){
   document.getElementById('splashView').style.display='none';
+  document.getElementById('welcomeView').style.display='none';
   document.getElementById('loginCard').style.display='block';
   setAuthMode(mode);
 }
+function showWelcome(){
+  document.getElementById('splashView').style.display='none';
+  document.getElementById('loginCard').style.display='none';
+  document.getElementById('welcomeView').style.display='flex';
+}
 document.getElementById('getStarted').addEventListener('click',()=>{
-  if(scriptUrl)showLoginCard('signup');
-  else enterGuest(true); // មិនទាន់ភ្ជាប់ Google Sheets → ចូលប្រើភ្លាម (ទិន្នន័យក្នុងម៉ាស៊ីន)
+  if(scriptUrl)showWelcome(); // → ផ្ទាំងស្វាគមន៍ (ចូល / ចុះឈ្មោះ / Google)
+  else enterGuest(true); // មិនទាន់ភ្ជាប់ server → ចូលប្រើភ្លាម (ទិន្នន័យក្នុងម៉ាស៊ីន)
 });
-document.getElementById('haveAcct').addEventListener('click',()=>{
-  if(scriptUrl)showLoginCard('login');
-  else openUrlModal(); // ត្រូវភ្ជាប់ URL ជាមុនសិន ទើបចូលគណនីបាន
-});
+document.getElementById('wSignin').addEventListener('click',()=>showLoginCard('login'));
+document.getElementById('wSignup').addEventListener('click',()=>showLoginCard('signup'));
+document.getElementById('wGoogle').addEventListener('click',()=>{showLoginCard('login');googleSignIn();});
+document.getElementById('wGuest').addEventListener('click',()=>enterGuest(true));
 
 // ---------- រូបក្រដាសប្រាក់រៀល (base64 — ផ្ទុកតែម្តង ប្រើគ្រប់កន្លែង) ----------
 const NOTE_IMAGES={
@@ -3122,6 +3314,88 @@ function startApp(){
   }
   showAuth(); // បង្ហាញផ្ទាំងចាប់ផ្តើម (splash) ជានិច្ច ពេលបើកថ្មី
 }
+// ═══════════════ 📍 កត់ត្រាទីតាំង (បិទ/បើកបានតាមចិត្ត — ការពារឯកជនភាព) ═══════════════
+const LOC_KEY='khmer-expense-location';
+function locEnabled(){return localStorage.getItem(LOC_KEY)==='1';}
+function getLocation(){
+  return new Promise(res=>{
+    if(!navigator.geolocation)return res(null);
+    let done=false;
+    const fin=v=>{if(!done){done=true;res(v);}};
+    setTimeout(()=>fin(null),4500); // កុំឱ្យរង់ចាំយូរ
+    navigator.geolocation.getCurrentPosition(
+      p=>fin(p.coords.latitude.toFixed(5)+','+p.coords.longitude.toFixed(5)),
+      ()=>fin(null),
+      {enableHighAccuracy:false,timeout:4000,maximumAge:120000}
+    );
+  });
+}
+function fmtNoteHtml(note){
+  if(!note)return '&nbsp;';
+  const m=note.match(/📍\((-?\d+\.?\d*),(-?\d+\.?\d*)\)/);
+  if(!m)return esc(note);
+  const rest=esc(note.replace(m[0],'').trim());
+  return (rest||'&nbsp;')+` <span class="txloc" data-ll="${m[1]},${m[2]}" title="មើលទីតាំងលើផែនទី">📍</span>`;
+}
+
+// ═══════════════ 📅 ផ្ទាំងជ្រើសខែ/ឆ្នាំ ═══════════════
+let mpYear=new Date().getFullYear();
+function openMonthModal(){
+  mpYear=viewMonth.getFullYear();
+  drawMonthGrid();
+  document.getElementById('monthOverlay').classList.add('open');
+}
+function drawMonthGrid(){
+  document.getElementById('mpYear').textContent=mpYear;
+  const g=document.getElementById('mpGrid');
+  g.innerHTML='';
+  const now=new Date();
+  KHMER_MONTHS.forEach((n,i)=>{
+    const b=document.createElement('button');
+    b.textContent=n;
+    if(mpYear===now.getFullYear()&&i===now.getMonth())b.classList.add('today');
+    if(mpYear===viewMonth.getFullYear()&&i===viewMonth.getMonth())b.classList.add('cur');
+    b.addEventListener('click',()=>{
+      viewMonth=new Date(mpYear,i,1);
+      document.getElementById('monthOverlay').classList.remove('open');
+      render();
+    });
+    g.appendChild(b);
+  });
+}
+document.getElementById('mpPrev').addEventListener('click',()=>{mpYear--;drawMonthGrid();});
+document.getElementById('mpNext').addEventListener('click',()=>{mpYear++;drawMonthGrid();});
+document.getElementById('mpClose').addEventListener('click',
+  ()=>document.getElementById('monthOverlay').classList.remove('open'));
+document.getElementById('monthOverlay').addEventListener('click',e=>{
+  if(e.target.id==='monthOverlay')e.target.classList.remove('open');
+});
+
+// ═══════════════ 🌓 ផ្ទាំងជ្រើសរូបរាង (Theme popup) ═══════════════
+function openThemeModal(){
+  const box=document.getElementById('themeOpts');
+  box.innerHTML='';
+  ['auto','light','dark'].forEach(md=>{
+    const b=document.createElement('button');
+    b.className='themeopt'+(themeMode===md?' cur':'');
+    b.innerHTML=`<span>${THEME_LABELS[md]}</span>${themeMode===md?'<b>✓</b>':''}`;
+    b.addEventListener('click',()=>{
+      themeMode=md;
+      localStorage.setItem(THEME_KEY,themeMode);
+      applyTheme();
+      document.getElementById('themeOverlay').classList.remove('open');
+      render();
+    });
+    box.appendChild(b);
+  });
+  document.getElementById('themeOverlay').classList.add('open');
+}
+document.getElementById('themeClose').addEventListener('click',
+  ()=>document.getElementById('themeOverlay').classList.remove('open'));
+document.getElementById('themeOverlay').addEventListener('click',e=>{
+  if(e.target.id==='themeOverlay')e.target.classList.remove('open');
+});
+
 // ═══════════════ 💡 Widget សង្ខេបរហ័ស ═══════════════
 function renderQuickCard(){
   const todayK=dateKey(new Date());
@@ -3623,6 +3897,26 @@ async function deleteTxSwipe(t){
   });
 })();
 
+// ═══════════════ 📲 ដំឡើងជា App (PWA install) ═══════════════
+let deferredInstall=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault(); // ទុកសិន — បង្ហាញពេលអ្នកប្រើចុចខ្លួនឯង
+  deferredInstall=e;
+});
+function installApp(){
+  if(deferredInstall){
+    deferredInstall.prompt(); // Android/Chrome: ផ្ទាំងដំឡើងផ្លូវការលេចមកភ្លាម
+    deferredInstall.userChoice.finally(()=>{deferredInstall=null;});
+    return;
+  }
+  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  if(ios){
+    alert('នៅលើ iPhone/iPad (Safari)៖\n\n1. ចុចប៊ូតុង Share (ប្រអប់មានព្រួញឡើងលើ ⬆️) នៅរបារខាងក្រោម\n2. រំកិលចុះក្រោម → ជ្រើស "Add to Home Screen"\n3. ចុច Add\n\nរួចរាល់! កម្មវិធីនឹងមានរូបតំណាង ៛ លើ Home Screen បើកពេញអេក្រង់ដូច App ពិត');
+  }else{
+    alert('បើកម៉ឺនុយ browser (⋮ ជ្រុងលើស្តាំ) → ជ្រើស "Add to Home screen" ឬ "Install app"');
+  }
+}
+
 // ---------- Theme (ភ្លឺ / ងងឹត / តាមប្រព័ន្ធ) ----------
 const THEME_KEY='khmer-expense-theme';
 let themeMode=localStorage.getItem(THEME_KEY)||'auto';
@@ -3689,6 +3983,8 @@ function handleBack(){
   if(isOpen('calOverlay')){closeCal();return true;}
   if(isOpen('pwOverlay')){document.getElementById('pwOverlay').classList.remove('open');return true;}
   if(isOpen('urlOverlay')){document.getElementById('urlOverlay').classList.remove('open');return true;}
+  if(isOpen('monthOverlay')){document.getElementById('monthOverlay').classList.remove('open');return true;}
+  if(isOpen('themeOverlay')){document.getElementById('themeOverlay').classList.remove('open');return true;}
   if(isOpen('budgetOverlay')){document.getElementById('budgetOverlay').classList.remove('open');return true;}
   if(isOpen('recurOverlay')){document.getElementById('recurOverlay').classList.remove('open');return true;}
   const appVisible=document.getElementById('appScreen').style.display!=='none';
@@ -3701,6 +3997,11 @@ function handleBack(){
     if(document.getElementById('resetCard').style.display!=='none'){backToLoginCard();return true;}
     if(document.getElementById('loginCard').style.display!=='none'){
       document.getElementById('loginCard').style.display='none';
+      document.getElementById('welcomeView').style.display='flex';
+      return true; // ត្រឡប់ទៅផ្ទាំងស្វាគមន៍សិន
+    }
+    if(document.getElementById('welcomeView').style.display==='flex'){
+      document.getElementById('welcomeView').style.display='none';
       document.getElementById('splashView').style.display='flex';
       return true; // ត្រឡប់ទៅ splash សិន
     }
