@@ -963,6 +963,46 @@ if(_t==='dark'||(_t==='auto'&&window.matchMedia&&matchMedia('(prefers-color-sche
   html[data-theme="dark"] .setrow,html[data-theme="dark"] .statsum,
   html[data-theme="dark"] .trendcard{box-shadow:0 6px 18px rgba(0,0,0,.35);}
 
+  /* ---------- v32: ✓ ភ្លឺ + modal អណ្តែត + batch + ប្រតិទិនបំណុល ---------- */
+  #savedPop span{
+    background:radial-gradient(circle at 32% 28%, #86efac, #22c55e 72%);
+    box-shadow:0 0 0 12px rgba(74,222,128,.22), 0 0 46px rgba(74,222,128,.65),
+               0 20px 55px rgba(34,197,94,.45);
+  }
+  .pwoverlay .authcard{
+    animation:cardFloat .38s cubic-bezier(.3,1.35,.5,1);
+  }
+  #calOverlay{z-index:96;}
+  #calOverlay>div{animation:cardFloat .32s cubic-bezier(.3,1.35,.5,1);}
+  @keyframes cardFloat{
+    0%{transform:translateY(34px) scale(.94); opacity:0;}
+    100%{transform:translateY(0) scale(1); opacity:1;}
+  }
+  .duebtn{
+    border:1px solid var(--line); background:var(--bg); color:var(--muted);
+    border-radius:12px; padding:10px 8px; font-family:inherit; font-size:12.5px;
+    cursor:pointer; transition:all .2s; white-space:nowrap;
+  }
+  .duebtn.hasval{
+    border-color:#10b981; color:#059669; background:rgba(16,185,129,.08); font-weight:700;
+  }
+  .batchwrap{margin:2px 0 8px;}
+  .batchlist{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;}
+  .bchip{
+    display:inline-flex; align-items:center; gap:6px;
+    background:rgba(16,185,129,.1); border:1px solid rgba(16,185,129,.35);
+    color:var(--ink); border-radius:999px; padding:5px 10px; font-size:12px;
+    animation:cardFloat .25s ease;
+  }
+  .bchip b{color:#EF4444; cursor:pointer; font-weight:800;}
+  .addmore{
+    width:100%; padding:11px; border:1.5px dashed rgba(16,185,129,.55);
+    background:rgba(16,185,129,.05); color:#059669; border-radius:14px;
+    font-family:inherit; font-size:13px; font-weight:700; cursor:pointer;
+    transition:all .2s;
+  }
+  .addmore:active{transform:scale(.98); background:rgba(16,185,129,.12);}
+
   /* ---------- v31: កាបូប + ម៉ាស៊ីនគិតលេខ + បំណុល + គោលដៅ ---------- */
   .walletrow{
     display:flex; gap:6px; overflow-x:auto; padding:8px 0 2px;
@@ -1608,6 +1648,11 @@ if(_t==='dark'||(_t==='auto'&&window.matchMedia&&matchMedia('(prefers-color-sche
       </div>
     </div>
 
+    <div class="batchwrap" id="batchWrap">
+      <div class="batchlist" id="batchList"></div>
+      <button class="addmore" id="addMoreBtn" type="button">＋ បន្ថែមមុខទៀត (រក្សាទុករួមគ្នា)</button>
+    </div>
+
     <p class="errmsg" id="errMsg" style="display:none"></p>
     <div class="formbtns">
       <button class="savebtn" id="saveBtn">រក្សាទុក</button>
@@ -1687,7 +1732,7 @@ if(_t==='dark'||(_t==='auto'&&window.matchMedia&&matchMedia('(prefers-color-sche
       <div class="rfrow">
         <input id="dbAmt" type="text" inputmode="decimal" placeholder="ចំនួន">
         <select id="dbCur" style="flex:0 0 64px"><option>៛</option><option>$</option></select>
-        <input id="dbDue" type="date" style="flex:0 0 138px" title="ថ្ងៃត្រូវសង">
+        <button type="button" class="duebtn" id="dbDueBtn" data-val="" style="flex:0 0 152px">📅 ថ្ងៃត្រូវសង</button>
       </div>
       <button class="authbtn" id="dbAdd" style="margin-top:10px">＋ បន្ថែម</button>
     </div>
@@ -1899,6 +1944,7 @@ async function fetchAll(){
     transactions=data.transactions.sort((a,b)=>new Date(b.date)-new Date(a.date));
     cacheSave();
     setSync('ok','បានធ្វើសមកាលកម្ម');
+    settingsPull(); // ☁️ ទាញការកំណត់រួម (ថវិកា បំណុល PIN...) ពីគណនី
     applyRecurring(); // បញ្ចូលប្រតិបត្តិការដដែលៗរបស់ខែនេះ (បើដល់ថ្ងៃ)
   }catch(e){
     cacheLoad();
@@ -2492,6 +2538,7 @@ function renderMore(c){
   on('setLoc',()=>{
     const nv=!locEnabled();
     localStorage.setItem(LOC_KEY,nv?'1':'');
+    settingsPush(); // ☁️
     if(nv&&navigator.geolocation){
       navigator.geolocation.getCurrentPosition(()=>{},()=>{}); // សុំសិទ្ធិមុន
     }
@@ -2846,6 +2893,7 @@ function openForm(type,tx){
   document.getElementById('deleteBtn').style.display=tx?'block':'none';
   selectedWallet=tx?(tx.wallet||'សាច់ប្រាក់'):(selectedWallet||'សាច់ប្រាក់');
   buildChips(); buildWalletRow(); setPhotoPreview();
+  batchItems=[]; renderBatchList(); // ចាប់ផ្តើមបញ្ជីច្រើនមុខថ្មី
   document.getElementById('overlay').classList.add('open');
 }
 // closeForm(): បិទសន្លឹកបញ្ចូលប្រតិបត្តិការ
@@ -2928,8 +2976,9 @@ document.getElementById('saveBtn').addEventListener('click',async()=>{
     errEl.textContent=msg;errEl.style.display='block';
     sheetEl.classList.remove('shake');void sheetEl.offsetWidth;sheetEl.classList.add('shake');
   };
-  if(!amt||amt<=0) return showErr('សូមបញ្ចូលចំនួនទឹកប្រាក់ត្រឹមត្រូវ');
-  if(!selectedCategory) return showErr('សូមជ្រើសរើសប្រភេទ');
+  const hasCur=isFinite(amt)&&amt>0;
+  if(!hasCur&&!batchItems.length) return showErr('សូមបញ្ចូលចំនួនទឹកប្រាក់ត្រឹមត្រូវ');
+  if(hasCur&&!selectedCategory) return showErr('សូមជ្រើសរើសប្រភេទ');
 
   const isEdit=!!editingTx;
   const pickedDate=document.getElementById('dateInput').value; // yyyy-mm-dd
@@ -2959,39 +3008,49 @@ document.getElementById('saveBtn').addEventListener('click',async()=>{
     }
   }
   setSync('busy','កំពុងផ្ញើ...');
+  if(!isEdit){
+    // 🧺 រក្សាទុកបានច្រើនមុខម្តង (batch) — មុខដែលបានបន្ថែម + មុខកំពុងបំពេញ
+    const items=batchItems.slice();
+    if(hasCur)items.push(null); // null = entry បច្ចុប្បន្ន
+    const base=Date.now().toString(36);
+    for(let i=0;i<items.length;i++){
+      const it=items[i];
+      const e2=(it===null)?entry:{
+        id:base+'-'+i+Math.random().toString(36).slice(2,4),
+        type:formType,category:it.category,amount:it.amount,
+        note:it.note||'',date:dateIso,currency:it.currency,
+        image:it.image||'',wallet:it.wallet||'សាច់ប្រាក់',
+      };
+      await saveTxDirect(e2); // ដោះស្រាយ guest / online / offline-queue ដោយឯង
+    }
+    batchItems=[];renderBatchList();
+    if(guestMode||!scriptUrl)setSync('idle','ទិន្នន័យរក្សាក្នុងម៉ាស៊ីន');
+    else if(!loadQueue().length)setSync('ok','បានធ្វើសមកាលកម្ម');
+    editingTx=null;
+    closeForm();render();
+    celebrateSave(); // ✓ បៃតងខ្ចីភ្លឺលោត + សំឡេងតិចៗ
+    btn.disabled=false;btn.textContent='រក្សាទុក';
+    return;
+  }
   try{
     if(guestMode){
-      if(isEdit){transactions=transactions.map(t=>t.id===entry.id?entry:t);}
-      else{
-        transactions.unshift(entry);
-        transactions.sort((a,b)=>new Date(b.date)-new Date(a.date));
-      }
+      transactions=transactions.map(t=>t.id===entry.id?entry:t);
       saveLocal();
       setSync('idle','ទិន្នន័យរក្សាក្នុងម៉ាស៊ីន');
-    }else if(isEdit){
+    }else{
       await postToSheet({action:'update',transaction:entry});
       transactions=transactions.map(t=>t.id===entry.id?entry:t);
-      cacheSave();
-      setSync('ok','បានធ្វើសមកាលកម្ម');
-    }else{
-      await postToSheet({action:'add',transaction:entry});
-      transactions.unshift(entry);
-      transactions.sort((a,b)=>new Date(b.date)-new Date(a.date));
       cacheSave();
       setSync('ok','បានធ្វើសមកាលកម្ម');
     }
     editingTx=null;
     closeForm();render();
-    celebrateSave(); // ✓ បៃតងលោត + សំឡេងតិចៗ
+    celebrateSave();
   }catch(e){
-    // គ្មានអ៊ីនធឺណិត? → រក្សាក្នុងម៉ាស៊ីនសិន ដាក់ជួររង់ចាំ — ផ្ទុកឡើងដោយឯងពេលមានវិញ
-    if(isEdit){transactions=transactions.map(t=>t.id===entry.id?entry:t);}
-    else{
-      transactions.unshift(entry);
-      transactions.sort((a,b)=>new Date(b.date)-new Date(a.date));
-    }
+    // គ្មានអ៊ីនធឺណិត → រក្សាក្នុងម៉ាស៊ីន ដាក់ជួររង់ចាំ
+    transactions=transactions.map(t=>t.id===entry.id?entry:t);
     cacheSave();
-    queueOp(isEdit?{op:'update',tx:entry}:{op:'add',tx:entry});
+    queueOp({op:'update',tx:entry});
     editingTx=null;
     closeForm();render();
     celebrateSave();
@@ -3357,7 +3416,16 @@ function setPickedDate(k){
   document.getElementById('dateDisplay').textContent=fmtDisplayDate(k);
 }
 // openCal(): បើកប្រតិទិនតូចសម្រាប់ជ្រើសកាលបរិច្ឆេទ ដោយចាប់ផ្តើមបង្ហាញខែនៃថ្ងៃដែលកំពុងជ្រើស
+let calTarget=null; // null=ទម្រង់បញ្ចូល, 'debtDue'=ថ្ងៃត្រូវសងបំណុល
+function openCalFor(target,cur){
+  calTarget=target;
+  calView=cur?new Date(cur+'T12:00:00'):new Date();
+  calView.setDate(1);
+  renderCal();
+  document.getElementById('calOverlay').classList.add('open');
+}
 function openCal(){
+  calTarget=null;
   const k=document.getElementById('dateInput').value;
   calView=k?new Date(k+'T12:00:00'):new Date();
   calView.setDate(1);
@@ -3365,7 +3433,7 @@ function openCal(){
   document.getElementById('calOverlay').classList.add('open');
 }
 // closeCal(): បិទប្រតិទិនតូច
-function closeCal(){document.getElementById('calOverlay').classList.remove('open');}
+function closeCal(){document.getElementById('calOverlay').classList.remove('open');calTarget=null;}
 // renderCal(): គូរក្រឡាថ្ងៃទាំងអស់ក្នុងខែសម្រាប់ប្រតិទិនតូច (ប្រើពេលជ្រើសកាលបរិច្ឆេទក្នុងទម្រង់)
 function renderCal(){
   const y=calView.getFullYear(), m=calView.getMonth();
@@ -3375,7 +3443,9 @@ function renderCal(){
   const first=new Date(y,m,1).getDay();
   const daysIn=new Date(y,m+1,0).getDate();
   const todayK=dateKey(new Date());
-  const selK=document.getElementById('dateInput').value;
+  const selK=calTarget==='debtDue'
+    ?(document.getElementById('dbDueBtn').dataset.val||'')
+    :document.getElementById('dateInput').value;
   for(let i=0;i<first;i++){
     const b=document.createElement('button');
     b.className='calday';b.disabled=true;
@@ -3386,7 +3456,17 @@ function renderCal(){
     const b=document.createElement('button');
     b.className='calday'+(k===todayK?' today':'')+(k===selK?' sel':'');
     b.textContent=d;
-    b.addEventListener('click',()=>{setPickedDate(k);closeCal();});
+    b.addEventListener('click',()=>{
+      if(calTarget==='debtDue'){
+        // 📅 ជ្រើសថ្ងៃត្រូវសង — ប្រើប្រតិទិនខ្មែរទំនើបដដែល
+        const btn=document.getElementById('dbDueBtn');
+        btn.dataset.val=k;
+        btn.textContent='📅 '+k;
+        btn.classList.add('hasval');
+        closeCal();return;
+      }
+      setPickedDate(k);closeCal();
+    });
     days.appendChild(b);
   }
 }
@@ -3574,6 +3654,154 @@ function startApp(){
   }
   showAuth(); // មិនទាន់ចូលគណនី → splash → welcome → ចូល/ចុះឈ្មោះ (តែម្តងគត់)
 }
+// ═══════════════ ☁️ សមកាលកម្មការកំណត់ គ្រប់ឧបករណ៍ (គណនីតែមួយ = ដូចគ្នាទាំងអស់) ═══════════════
+// ថវិកា · ដដែលៗ · បំណុល · គោលដៅ · កាបូប · PIN · Theme · GPS → រក្សាលើ server តាមគណនី
+const SETMETA_KEY='khmer-expense-setmeta';
+let applyingSettings=false;
+let setPushTimer=null;
+function setMeta(){
+  try{return JSON.parse(localStorage.getItem(SETMETA_KEY)||'{}')[acctKey()]||'';}
+  catch(_){return '';}
+}
+function setMetaSave(u){
+  try{
+    const a=JSON.parse(localStorage.getItem(SETMETA_KEY)||'{}');
+    a[acctKey()]=u;
+    localStorage.setItem(SETMETA_KEY,JSON.stringify(a));
+  }catch(_){}
+}
+function collectSettings(){
+  const lk=loadLock();
+  return {
+    budgets:loadBudgets(),
+    recurring:loadRecur(),
+    debts:loadDebts(),
+    goals:loadGoals(),
+    wallets:loadWallets(),
+    lock:lk?{hash:lk.hash,len:lk.len}:null, // ក្រយៅដៃ (credId) ជាប់តាមឧបករណ៍ — មិន sync ទេ
+    theme:themeMode,
+    loc:locEnabled(),
+  };
+}
+function applySettings(o){
+  applyingSettings=true;
+  try{
+    if(o.budgets)saveBudgets(o.budgets);
+    if(o.recurring)saveRecur(o.recurring);
+    if(o.debts)saveDebts(o.debts);
+    if(o.goals)saveGoals(o.goals);
+    if(o.wallets&&o.wallets.length)saveWallets(o.wallets);
+    const curLock=loadLock();
+    if(o.lock&&o.lock.hash){
+      saveLock({hash:o.lock.hash,len:o.lock.len||4,credId:curLock?(curLock.credId||''):''});
+    }else if(!o.lock&&curLock){
+      saveLock(null); // បិទសោពីឧបករណ៍ផ្សេង → បិទទីនេះដែរ
+    }
+    if(o.theme&&o.theme!==themeMode){
+      themeMode=o.theme;
+      localStorage.setItem(THEME_KEY,themeMode);
+      applyTheme();
+    }
+    localStorage.setItem(LOC_KEY,o.loc?'1':'');
+  }catch(_){}
+  applyingSettings=false;
+}
+function settingsPush(){
+  if(applyingSettings||guestMode||!scriptUrl||!authToken)return;
+  clearTimeout(setPushTimer);
+  setPushTimer=setTimeout(async()=>{
+    try{
+      const updated=new Date().toISOString();
+      await postToSheet({
+        action:'setSettings',
+        settings:JSON.stringify(collectSettings()),
+        updated:updated,
+      });
+      setMetaSave(updated);
+    }catch(_){}
+  },1200); // debounce — ប្តូរច្រើនដងជាប់គ្នា ផ្ញើតែម្តង
+}
+async function settingsPull(){
+  if(guestMode||!scriptUrl||!authToken)return;
+  try{
+    const d=await postToSheet({action:'getSettings'});
+    if(d.settings&&d.updated&&d.updated>String(setMeta()||'')){
+      applySettings(JSON.parse(d.settings));
+      setMetaSave(d.updated);
+      render(); // បង្ហាញការកំណត់ថ្មីភ្លាម
+    }else if(!d.updated){
+      settingsPush(); // server ទទេ → ផ្ញើការកំណត់ឧបករណ៍នេះឡើងជាដំបូង
+    }
+  }catch(_){}
+}
+// រាល់ការរក្សាទុកការកំណត់ណាមួយ → ផ្ញើទៅ server ដោយឯង
+(function(){
+  const wrap=name=>{
+    const orig=window[name];
+    if(typeof orig!=='function')return;
+    window[name]=function(){
+      const r=orig.apply(this,arguments);
+      settingsPush();
+      return r;
+    };
+  };
+  ['saveBudgets','saveRecur','saveDebts','saveGoals','saveWallets','saveLock'].forEach(wrap);
+})();
+
+// ═══════════════ 🧺 បញ្ចូលច្រើនមុខក្នុងពេលតែមួយ (batch) ═══════════════
+let batchItems=[];
+function renderBatchList(){
+  const el=document.getElementById('batchList');
+  if(!el)return;
+  el.innerHTML='';
+  batchItems.forEach((it,i)=>{
+    const b=document.createElement('span');
+    b.className='bchip';
+    b.innerHTML=`${CATEGORY_ICONS[it.category]||'📦'} ${esc(it.category)} · ${fm(it.amount)}${it.currency} <b title="ដកចេញ">✕</b>`;
+    b.querySelector('b').addEventListener('click',()=>{
+      batchItems.splice(i,1);
+      renderBatchList();
+    });
+    el.appendChild(b);
+  });
+  const wrapEl=document.getElementById('batchWrap');
+  if(wrapEl)wrapEl.style.display=editingTx?'none':'block'; // កែកំណត់ត្រាចាស់ → មិនប្រើ batch ទេ
+  const sv=document.getElementById('saveBtn');
+  if(sv&&!editingTx){
+    sv.textContent=batchItems.length?('រក្សាទុកទាំង '+(batchItems.length)+'+ មុខ'):'រក្សាទុក';
+  }
+}
+document.getElementById('addMoreBtn').addEventListener('click',()=>{
+  const amtEl=document.getElementById('amount');
+  const v=calcAmount(amtEl.value);
+  const errEl=document.getElementById('errMsg');
+  const showErr=m=>{errEl.textContent=m;errEl.style.display='block';};
+  if(!isFinite(v)||v<=0)return showErr('សូមបញ្ចូលចំនួន មុននឹងបន្ថែមមុខទៀត');
+  if(!selectedCategory)return showErr('សូមជ្រើសរើសប្រភេទ');
+  errEl.style.display='none';
+  batchItems.push({
+    category:selectedCategory,
+    amount:v,
+    currency:selectedCurrency,
+    note:document.getElementById('note').value.trim(),
+    wallet:selectedWallet||'សាច់ប្រាក់',
+    image:photoData||'',
+  });
+  // សម្អាតសម្រាប់មុខបន្ទាប់ (ថ្ងៃ/ម៉ោង/ប្រភេទចំណូល-ចំណាយ/កាបូប នៅដដែល)
+  amtEl.value='';
+  document.getElementById('calcHint').style.display='none';
+  document.getElementById('note').value='';
+  photoData='';setPhotoPreview();
+  renderBatchList();
+  try{navigator.vibrate&&navigator.vibrate(6);}catch(_){}
+  amtEl.focus();
+});
+
+// ═══════════════ 📅 ថ្ងៃត្រូវសងបំណុល → ប្រតិទិនខ្មែរទំនើប ═══════════════
+document.getElementById('dbDueBtn').addEventListener('click',()=>{
+  openCalFor('debtDue',document.getElementById('dbDueBtn').dataset.val||'');
+});
+
 // ═══════════════ 👛 កាបូបច្រើន (Wallets) ═══════════════
 const WALLET_KEY='khmer-expense-wallets';
 const DEFAULT_WALLETS=['សាច់ប្រាក់','ABA','Wing','ACLEDA','សន្សំ'];
@@ -3805,13 +4033,14 @@ document.getElementById('dbAdd').addEventListener('click',()=>{
   all.push({
     id:Date.now().toString(36),type:debtTab,person:person,amount:amt,
     currency:document.getElementById('dbCur').value,
-    due:document.getElementById('dbDue').value||'',
+    due:document.getElementById('dbDueBtn').dataset.val||'',
     paid:false,created:new Date().toISOString(),
   });
   saveDebts(all);
   document.getElementById('dbPerson').value='';
   document.getElementById('dbAmt').value='';
-  document.getElementById('dbDue').value='';
+  const dueBtn=document.getElementById('dbDueBtn');
+  dueBtn.dataset.val='';dueBtn.textContent='📅 ថ្ងៃត្រូវសង';dueBtn.classList.remove('hasval');
   renderDebts();
 });
 document.getElementById('debtClose').addEventListener('click',
@@ -4129,6 +4358,7 @@ function openThemeModal(){
       themeMode=md;
       localStorage.setItem(THEME_KEY,themeMode);
       applyTheme();
+      settingsPush(); // ☁️
       document.getElementById('themeOverlay').classList.remove('open');
       render();
     });
