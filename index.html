@@ -963,6 +963,74 @@ if(_t==='dark'||(_t==='auto'&&window.matchMedia&&matchMedia('(prefers-color-sche
   html[data-theme="dark"] .setrow,html[data-theme="dark"] .statsum,
   html[data-theme="dark"] .trendcard{box-shadow:0 6px 18px rgba(0,0,0,.35);}
 
+  /* ---------- v31: កាបូប + ម៉ាស៊ីនគិតលេខ + បំណុល + គោលដៅ ---------- */
+  .walletrow{
+    display:flex; gap:6px; overflow-x:auto; padding:8px 0 2px;
+    scrollbar-width:none; -webkit-overflow-scrolling:touch;
+  }
+  .walletrow::-webkit-scrollbar{display:none;}
+  .wpill{
+    flex:0 0 auto; border:1px solid var(--line); background:var(--bg);
+    color:var(--ink); border-radius:999px; padding:6px 12px; font-family:inherit;
+    font-size:12.5px; cursor:pointer; white-space:nowrap; transition:all .15s;
+  }
+  .wpill.on{
+    background:linear-gradient(135deg,#059669,#10b981); color:#fff;
+    border-color:transparent; font-weight:700;
+  }
+  .wpill.wadd{color:var(--muted); border-style:dashed;}
+  .wbrow{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:8px 0; border-bottom:1px dashed var(--line); font-size:13.5px;
+  }
+  .wbrow:last-child{border-bottom:none;}
+  .wtransfer{
+    border:none; background:rgba(16,185,129,.12); color:#059669;
+    border-radius:999px; padding:5px 12px; font-family:inherit;
+    font-size:12px; font-weight:700; cursor:pointer;
+  }
+  .insrow{padding:7px 0; font-size:13px; line-height:1.7; border-bottom:1px dashed var(--line);}
+  .insrow:last-child{border-bottom:none;}
+  .sharebtn{
+    display:block; width:calc(100% - 32px); margin:12px 16px 4px; padding:14px;
+    border:none; border-radius:16px; font-family:inherit; font-size:14.5px; font-weight:700;
+    background:linear-gradient(135deg,#059669,#10b981); color:#fff; cursor:pointer;
+    box-shadow:0 8px 22px rgba(5,150,105,.3);
+  }
+  .plusbtn{
+    flex:0 0 40px; width:40px; height:40px; border-radius:12px; border:1px solid var(--line);
+    background:var(--bg2); color:#059669; font-size:20px; font-weight:800;
+    cursor:pointer; align-self:center; margin-right:6px;
+  }
+  .calchint{font-size:12.5px; color:#059669; font-weight:700; margin-top:2px;}
+  .dtabs{display:flex; gap:8px; margin-bottom:10px;}
+  .dtab{
+    flex:1; padding:10px; border-radius:12px; border:1px solid var(--line);
+    background:var(--bg); color:var(--muted); font-family:inherit; font-size:13px; cursor:pointer;
+  }
+  .dtab.on{
+    background:rgba(16,185,129,.1); border-color:#10b981; color:var(--ink); font-weight:700;
+  }
+  .recuritem.dpaid .rmain{text-decoration:line-through; opacity:.55;}
+  .recuritem .dpay{
+    border:none; background:rgba(16,185,129,.15); color:#059669; border-radius:8px;
+    width:28px; height:28px; cursor:pointer; flex-shrink:0; font-weight:800;
+  }
+  .recuritem .ddel{
+    border:none; background:#fee2e2; color:#EF4444; border-radius:8px;
+    width:28px; height:28px; cursor:pointer; flex-shrink:0;
+  }
+  html[data-theme="dark"] .recuritem .ddel{background:rgba(239,68,68,.2);}
+  .goalitem{padding:10px 0; border-bottom:1px dashed var(--line);}
+  .goalitem:last-child{border-bottom:none;}
+  .goalbtns{display:flex; gap:8px; align-items:center; margin-top:8px; font-size:12.5px;}
+  .goalbtns button{
+    border:none; border-radius:10px; padding:6px 12px; font-family:inherit;
+    font-size:12px; cursor:pointer;
+  }
+  .goalbtns .gadd{background:rgba(16,185,129,.12); color:#059669; font-weight:700;}
+  .goalbtns .gdel{background:transparent; color:var(--muted); margin-left:auto;}
+
   /* ---------- v29: កែរបារប្រភេទមួយជួរ + chip ទីតាំង ---------- */
   #chips{flex-wrap:nowrap !important; width:100%; scroll-snap-type:none;}
   #chips .cattile{scroll-snap-align:none;}
@@ -1500,7 +1568,9 @@ if(_t==='dark'||(_t==='auto'&&window.matchMedia&&matchMedia('(prefers-color-sche
       <div class="rowmain">
         <small class="rowlabel">ចំនួនប្រាក់</small>
         <input id="amount" type="text" inputmode="decimal" placeholder="0.00" />
+        <div class="calchint" id="calcHint" style="display:none"></div>
       </div>
+      <button class="plusbtn" id="plusBtn" title="បូកបន្ត">＋</button>
       <div class="curtabs">
         <button class="curtab" data-cur="៛">៛</button>
         <button class="curtab" data-cur="$">$</button>
@@ -1512,6 +1582,7 @@ if(_t==='dark'||(_t==='auto'&&window.matchMedia&&matchMedia('(prefers-color-sche
       <div class="rowmain catwrap">
         <div class="cwband"></div>
         <div class="chips" id="chips"></div>
+        <div class="walletrow" id="walletRow"></div>
       </div>
     </div>
 
@@ -1576,6 +1647,65 @@ if(_t==='dark'||(_t==='auto'&&window.matchMedia&&matchMedia('(prefers-color-sche
       <button class="pwcancel" id="lockDisable" style="display:none; color:#EF4444;">បិទសោ</button>
       <button class="authbtn" id="lockSave" style="margin-top:0; flex:1;">រក្សាទុក</button>
     </div>
+  </div>
+</div>
+
+<!-- 🔁 ផ្ទេរប្រាក់រវាងកាបូប -->
+<div class="pwoverlay" id="transferOverlay">
+  <div class="authcard pwcard">
+    <h3>🔁 ផ្ទេរប្រាក់រវាងកាបូប</h3>
+    <div class="recurform">
+      <div class="rfrow">
+        <select id="tfFrom"></select>
+        <span style="align-self:center; flex:0 0 auto;">→</span>
+        <select id="tfTo"></select>
+      </div>
+      <div class="rfrow">
+        <input id="tfAmt" type="text" inputmode="decimal" placeholder="ចំនួន">
+        <select id="tfCur" style="flex:0 0 64px"><option>៛</option><option>$</option></select>
+      </div>
+    </div>
+    <div class="lockerr" id="tfErr" style="display:none"></div>
+    <div class="pwbtns">
+      <button class="pwcancel" id="tfCancel">បោះបង់</button>
+      <button class="authbtn" id="tfSave" style="margin-top:0; flex:1;">ផ្ទេរ</button>
+    </div>
+  </div>
+</div>
+
+<!-- 🤝 បំណុល-ឥណទាន -->
+<div class="pwoverlay" id="debtOverlay">
+  <div class="authcard pwcard">
+    <h3>🤝 បំណុល-ឥណទាន</h3>
+    <div class="dtabs">
+      <button class="dtab on" data-dt="owed">🟢 គេជំពាក់ខ្ញុំ</button>
+      <button class="dtab" data-dt="owe">🔴 ខ្ញុំជំពាក់គេ</button>
+    </div>
+    <div class="budlist" id="debtList"></div>
+    <div class="recurform">
+      <div class="rfrow"><input id="dbPerson" type="text" placeholder="ឈ្មោះមនុស្ស"></div>
+      <div class="rfrow">
+        <input id="dbAmt" type="text" inputmode="decimal" placeholder="ចំនួន">
+        <select id="dbCur" style="flex:0 0 64px"><option>៛</option><option>$</option></select>
+        <input id="dbDue" type="date" style="flex:0 0 138px" title="ថ្ងៃត្រូវសង">
+      </div>
+      <button class="authbtn" id="dbAdd" style="margin-top:10px">＋ បន្ថែម</button>
+    </div>
+    <div class="pwbtns"><button class="pwcancel" id="debtClose" style="flex:1">បិទ</button></div>
+  </div>
+</div>
+
+<!-- 🎯 គោលដៅសន្សំ -->
+<div class="pwoverlay" id="goalOverlay">
+  <div class="authcard pwcard">
+    <h3>🎯 គោលដៅសន្សំ</h3>
+    <div class="budlist" id="goalList"></div>
+    <div class="recurform">
+      <div class="rfrow"><input id="glName" type="text" placeholder="ឈ្មោះគោលដៅ (ឧ. ទិញម៉ូតូ)"></div>
+      <div class="rfrow"><input id="glTarget" type="text" inputmode="numeric" placeholder="ទឹកប្រាក់គោលដៅ (៛)"></div>
+      <button class="authbtn" id="glAdd" style="margin-top:10px">＋ បង្កើតគោលដៅ</button>
+    </div>
+    <div class="pwbtns"><button class="pwcancel" id="goalClose" style="flex:1">បិទ</button></div>
   </div>
 </div>
 
@@ -1825,7 +1955,9 @@ function fmtAmt(t){return (t.currency||'៛')==='$'?`$${fm(t.amount)}`:`${fm(t.a
 // sumMap(list,type): បូកសរុបចំនួនទឹកប្រាក់តាមប្រភេទ (income/expense) ញែកដោយឡែកតាមរូបិយប័ណ្ណ → {'៛':x,'$':y}
 function sumMap(list,type){
   const m={};
-  list.filter(t=>t.type===type).forEach(t=>{const c=t.currency||'៛';m[c]=(m[c]||0)+t.amount;});
+  // "ផ្ទេរប្រាក់" រវាងកាបូប មិនមែនចំណូល/ចំណាយពិតទេ — មិនរាប់ក្នុងសរុប
+  list.filter(t=>t.type===type&&t.category!=='ផ្ទេរប្រាក់')
+      .forEach(t=>{const c=t.currency||'៛';m[c]=(m[c]||0)+t.amount;});
   return m;
 }
 // diffMap(inc,exp): គណនាសមតុល្យ (ចំណូល-ចំណាយ) ញែកតាមរូបិយប័ណ្ណនីមួយៗ
@@ -2019,7 +2151,7 @@ function renderDaily(c){
           ${t.image?`<img class="txthumb" src="${t.image}">`:''}
           <div class="txmidtext">
             <div class="txnote">${fmtNoteHtml(t.note)}</div>
-            <div class="txsub">សាច់ប្រាក់</div>
+            <div class="txsub">${walletIcon(t.wallet||'សាច់ប្រាក់')} ${esc(t.wallet||'សាច់ប្រាក់')}</div>
           </div>
         </div>
         <span class="txamt ${t.type}">${fmtAmt(t)}</span>`;
@@ -2155,7 +2287,7 @@ function pieSvg(items){ // items: [{pct,color}] pct គិតជា %
 
 // renderStats(c): បង្ហាញទំព័រស្ថិតិ — ប៊ូតុងជ្រើសចំណូល/ចំណាយ+រូបិយប័ណ្ណ, ក្រាហ្វិចរង្វង់ និងបញ្ជីតាមប្រភេទ
 function renderStats(c){
-  const mAll=monthTx().filter(t=>(t.currency||'៛')===statsCur);
+  const mAll=monthTx().filter(t=>(t.currency||'៛')===statsCur&&t.category!=='ផ្ទេរប្រាក់');
   const mtx=mAll.filter(t=>t.type===statsType);
   const total=mtx.reduce((s,t)=>s+t.amount,0);
   const incTot=mAll.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
@@ -2176,6 +2308,35 @@ function renderStats(c){
       <span>ចំណូល <b style="color:var(--blue)">${money(incTot)}</b></span>
       <span>ចំណាយ <b style="color:var(--red)">${money(expTot)}</b></span>
     </div>`;
+
+  // ---------- 👛 កាបូប (សមតុល្យគ្រប់ខែទាំងអស់) + ប៊ូតុងផ្ទេរ ----------
+  const wb=walletBalances();
+  const wkeys=Object.keys(wb);
+  if(wkeys.length){
+    let wrows='';
+    wkeys.forEach(w=>{
+      const r=wb[w]['៛']||0,d=wb[w]['$']||0;
+      const parts=[];
+      if(r)parts.push(fm(r)+'៛');
+      if(d)parts.push('$'+fm(d));
+      wrows+=`<div class="wbrow"><span>${walletIcon(w)} ${esc(w)}</span><b>${parts.join(' · ')||'0៛'}</b></div>`;
+    });
+    c.innerHTML+=`
+    <div class="trendcard">
+      <div class="trendtitle" style="display:flex; justify-content:space-between; align-items:center;">
+        <span>👛 កាបូប</span>
+        <button class="wtransfer" id="wTransferBtn">🔁 ផ្ទេរប្រាក់</button>
+      </div>
+      ${wrows}
+    </div>`;
+  }
+
+  // ---------- 💡 ការវិភាគស្វ័យប្រវត្តិ (Insights) ----------
+  const ins=buildInsights();
+  if(ins.length){
+    c.innerHTML+=`<div class="trendcard"><div class="trendtitle">💡 ការវិភាគ</div>${
+      ins.map(x=>`<div class="insrow">${x}</div>`).join('')}</div>`;
+  }
 
   // ---------- ក្រាហ្វិកនិន្នាការប្រចាំខែ (សរុបថ្ងៃនីមួយៗ) ----------
   if(mtx.length){
@@ -2211,6 +2372,12 @@ function renderStats(c){
       </svg>
     </div>`;
   }
+
+  // 🖼️ ចែករំលែករបាយការណ៍ខែ + ភ្ជាប់ប៊ូតុង
+  c.innerHTML+=`<button class="sharebtn" id="shareReport">🖼️ រក្សាទុក / ចែករំលែករបាយការណ៍ខែ</button>`;
+  const tb=document.getElementById('wTransferBtn');
+  if(tb)tb.addEventListener('click',openTransferModal);
+  document.getElementById('shareReport').addEventListener('click',shareMonthReport);
 
   if(cats.length===0){
     c.innerHTML+='<div class="emptybox anim">គ្មានទិន្នន័យក្នុងខែនេះទេ</div>';
@@ -2302,6 +2469,8 @@ function renderMore(c){
   if(!guestMode&&scriptUrl){
     rows+=`<div class="setrow" id="setDevices"><span class="l">📱 ឧបករណ៍បានចូលគណនី</span><span class="r">›</span></div>`;
   }
+  rows+=`<div class="setrow" id="setDebts"><span class="l">🤝 បំណុល-ឥណទាន</span><span class="r">›</span></div>`;
+  rows+=`<div class="setrow" id="setGoals"><span class="l">🎯 គោលដៅសន្សំ</span><span class="r">›</span></div>`;
   rows+=`<div class="setrow" id="setRate"><span class="l">💱 អត្រាប្តូរប្រាក់</span><span class="r">1$ = ${fm(usdRate)}៛ ›</span></div>`;
   rows+=`<div class="setrow" id="setRateAuto"><span class="l">🔁 អត្រាស្វ័យប្រវត្តិ (តាមទីផ្សារ)</span><span class="r">${rateAuto?'បើក ✓':'បិទ'} ›</span></div>`;
   rows+=`<div class="setrow" id="setCsv"><span class="l">📤 ទាញចេញជា Excel (CSV)</span><span class="r">›</span></div>`;
@@ -2318,6 +2487,8 @@ function renderMore(c){
   on('setRecur',openRecurModal);
   on('setLock',openLockModal);
   on('setDevices',openDevicesModal);
+  on('setDebts',openDebtModal);
+  on('setGoals',openGoalModal);
   on('setLoc',()=>{
     const nv=!locEnabled();
     localStorage.setItem(LOC_KEY,nv?'1':'');
@@ -2573,12 +2744,12 @@ const CATEGORY_COLORS={
 Object.assign(CATEGORY_ICONS,{
   'ទូរសព្ទ':'📞','អ៊ីនធឺណិត':'🌐','Laptop':'💻','MacBook':'🖥️',
   'ជួសជុលម៉ូតូ':'🔧','ជួសជុលឡាន':'🛠️','គ្រឿងបន្លាស់ម៉ូតូ':'🏍️','គ្រឿងបន្លាស់ឡាន':'🚗',
-  'ផ្គត់ផ្គង់គ្រួសារ':'👪','សម្ភារៈកីឡា':'⚽','ធានារ៉ាប់រង':'🛡️','ពន្ធ':'🧾',
+  'ផ្គត់ផ្គង់គ្រួសារ':'👪','សម្ភារៈកីឡា':'⚽','ធានារ៉ាប់រង':'🛡️','ពន្ធ':'🧾','ផ្ទេរប្រាក់':'🔁',
 });
 Object.assign(CATEGORY_COLORS,{
   'ទូរសព្ទ':'#38bdf8','អ៊ីនធឺណិត':'#06b6d4','Laptop':'#64748b','MacBook':'#94a3b8',
   'ជួសជុលម៉ូតូ':'#f59e0b','ជួសជុលឡាន':'#fb923c','គ្រឿងបន្លាស់ម៉ូតូ':'#84cc16','គ្រឿងបន្លាស់ឡាន':'#3b82f6',
-  'ផ្គត់ផ្គង់គ្រួសារ':'#f472b6','សម្ភារៈកីឡា':'#16a34a','ធានារ៉ាប់រង':'#0891b2','ពន្ធ':'#a16207',
+  'ផ្គត់ផ្គង់គ្រួសារ':'#f472b6','សម្ភារៈកីឡា':'#16a34a','ធានារ៉ាប់រង':'#0891b2','ពន្ធ':'#a16207','ផ្ទេរប្រាក់':'#64748b',
 });
 // buildChips(): បង្កើតប៊ូតុងជ្រើសប្រភេទ (ចំណូល ឬ ចំណាយ អាស្រ័យ formType) ក្នុងសន្លឹកបញ្ចូល
 // របារជ្រើសប្រភេទផ្តេក៖ អូសឆ្វេង/ស្តាំ — ធាតុនៅកណ្តាល = ជ្រើសរើស (ដូចកង់ម៉ោង តែផ្តេក)
@@ -2653,6 +2824,10 @@ function setPhotoPreview(){
 // openForm(type,tx): បើកសន្លឹកបញ្ចូលប្រតិបត្តិការថ្មី (tx=null) ឬសម្រាប់កែ (tx=ប្រតិបត្តិការចាស់)
 // បំពេញតម្លៃដើមទាំងអស់ (ចំនួន, ថ្ងៃ, ម៉ោង, ចំណាំ, រូបភាព) ចូលក្នុងសមាសធាតុទម្រង់
 function openForm(type,tx){
+  if(tx&&tx.category==='ផ្ទេរប្រាក់'){
+    alert('កំណត់ត្រាផ្ទេរប្រាក់ — មិនអាចកែបានទេ។ អូសទៅឆ្វេងដើម្បីលុប រួចផ្ទេរម្តងទៀតបើត្រូវការ');
+    return;
+  }
   formType=type;
   editingTx=tx||null;
   selectedCategory=tx?tx.category:'';
@@ -2669,7 +2844,8 @@ function openForm(type,tx){
   save.disabled=false;
   save.textContent=tx?'រក្សាទុកការកែតម្រូវ':'រក្សាទុក';
   document.getElementById('deleteBtn').style.display=tx?'block':'none';
-  buildChips(); setPhotoPreview();
+  selectedWallet=tx?(tx.wallet||'សាច់ប្រាក់'):(selectedWallet||'សាច់ប្រាក់');
+  buildChips(); buildWalletRow(); setPhotoPreview();
   document.getElementById('overlay').classList.add('open');
 }
 // closeForm(): បិទសន្លឹកបញ្ចូលប្រតិបត្តិការ
@@ -2745,7 +2921,7 @@ document.querySelectorAll('.navbtn').forEach(b=>{
 // ចុច "រក្សាទុក" ក្នុងទម្រង់៖ ត្រួតពិនិត្យទិន្នន័យ, បង្កើត/ធ្វើបច្ចុប្បន្នភាពប្រតិបត្តិការ
 // ហើយផ្ញើទៅ Google Sheets (ឬរក្សាទុកក្នុងម៉ាស៊ីនបើជា guest)
 document.getElementById('saveBtn').addEventListener('click',async()=>{
-  const amt=parseFloat(document.getElementById('amount').value.replace(/,/g,''));
+  const amt=calcAmount(document.getElementById('amount').value); // គាំទ្រ 5000+3500+...
   const errEl=document.getElementById('errMsg');
   const sheetEl=document.querySelector('.sheet');
   const showErr=msg=>{
@@ -2770,6 +2946,7 @@ document.getElementById('saveBtn').addEventListener('click',async()=>{
     date:dateIso,
     currency:selectedCurrency,
     image:photoData,
+    wallet:selectedWallet||'សាច់ប្រាក់',
   };
   const btn=document.getElementById('saveBtn');
   btn.disabled=true;btn.textContent='កំពុងរក្សាទុក...';
@@ -3217,6 +3394,16 @@ document.getElementById('dateMain').addEventListener('click',openCal);
 // ដាក់ក្បៀសរាល់ ៣ ខ្ទង់ ពេលកំពុងវាយចំនួនទឹកប្រាក់
 document.getElementById('amount').addEventListener('input',()=>{
   const el=document.getElementById('amount');
+  const hint=document.getElementById('calcHint');
+  // 🧮 របៀបម៉ាស៊ីនគិតលេខ៖ មានសញ្ញា + - × ÷ → បង្ហាញលទ្ធផលភ្លាម (= X)
+  if(/[+\-×x*÷/]/.test(el.value)){
+    el.value=el.value.replace(/[^\d.,+\-×x*÷/ ]/g,'');
+    const v=calcAmount(el.value);
+    if(isFinite(v)&&v>0){hint.textContent='= '+fm(v);hint.style.display='block';}
+    else hint.style.display='none';
+    return;
+  }
+  hint.style.display='none';
   let v=el.value.replace(/[^\d.]/g,'');
   const firstDot=v.indexOf('.');
   let intPart=firstDot===-1?v:v.slice(0,firstDot);
@@ -3224,6 +3411,11 @@ document.getElementById('amount').addEventListener('input',()=>{
   intPart=intPart.replace(/^0+(?=\d)/,'');
   intPart=intPart.replace(/\B(?=(\d{3})+(?!\d))/g,',');
   el.value=fracPart===null?intPart:intPart+'.'+fracPart;
+});
+document.getElementById('plusBtn').addEventListener('click',()=>{
+  const el=document.getElementById('amount');
+  if(el.value&&!/[+\-×x*÷/]$/.test(el.value.trim()))el.value+='+';
+  el.focus();
 });
 document.getElementById('calPrev').addEventListener('click',()=>{
   calView=new Date(calView.getFullYear(),calView.getMonth()-1,1);renderCal();
@@ -3382,6 +3574,396 @@ function startApp(){
   }
   showAuth(); // មិនទាន់ចូលគណនី → splash → welcome → ចូល/ចុះឈ្មោះ (តែម្តងគត់)
 }
+// ═══════════════ 👛 កាបូបច្រើន (Wallets) ═══════════════
+const WALLET_KEY='khmer-expense-wallets';
+const DEFAULT_WALLETS=['សាច់ប្រាក់','ABA','Wing','ACLEDA','សន្សំ'];
+const WALLET_ICONS={'សាច់ប្រាក់':'💵','ABA':'🏦','Wing':'📱','ACLEDA':'🏛️','សន្សំ':'🐖'};
+let selectedWallet='សាច់ប្រាក់';
+function walletIcon(w){return WALLET_ICONS[w]||'👛';}
+function loadWallets(){
+  try{
+    const c=JSON.parse(localStorage.getItem(WALLET_KEY)||'{}')[acctKey()];
+    return (c&&c.length)?c:DEFAULT_WALLETS.slice();
+  }catch(_){return DEFAULT_WALLETS.slice();}
+}
+function saveWallets(w){
+  try{
+    const all=JSON.parse(localStorage.getItem(WALLET_KEY)||'{}');
+    all[acctKey()]=w;
+    localStorage.setItem(WALLET_KEY,JSON.stringify(all));
+  }catch(_){}
+}
+function buildWalletRow(){
+  const el=document.getElementById('walletRow');
+  if(!el)return;
+  el.innerHTML='';
+  const ws=loadWallets();
+  if(!ws.includes(selectedWallet))selectedWallet=ws[0];
+  ws.forEach(w=>{
+    const b=document.createElement('button');
+    b.className='wpill'+(selectedWallet===w?' on':'');
+    b.textContent=walletIcon(w)+' '+w;
+    b.addEventListener('click',()=>{selectedWallet=w;buildWalletRow();});
+    el.appendChild(b);
+  });
+  const add=document.createElement('button');
+  add.className='wpill wadd';
+  add.textContent='＋';
+  add.title='បន្ថែមកាបូបថ្មី';
+  add.addEventListener('click',()=>{
+    const nm=prompt('ឈ្មោះកាបូបថ្មី (ឧ. TrueMoney, Chip Mong)');
+    if(!nm||!nm.trim())return;
+    const ws2=loadWallets();
+    if(!ws2.includes(nm.trim())){ws2.push(nm.trim());saveWallets(ws2);}
+    selectedWallet=nm.trim();
+    buildWalletRow();
+  });
+  el.appendChild(add);
+}
+// សមតុល្យតាមកាបូប — គិតគ្រប់ខែទាំងអស់ រួមទាំងការផ្ទេរ
+function walletBalances(){
+  const map={};
+  transactions.forEach(t=>{
+    const w=t.wallet||'សាច់ប្រាក់';
+    map[w]=map[w]||{'៛':0,'$':0};
+    map[w][t.currency||'៛']+=(t.type==='income'?1:-1)*t.amount;
+  });
+  return map;
+}
+// រក្សាទុកកំណត់ត្រាដោយផ្ទាល់ (ប្រើដោយការផ្ទេរ) — គាំទ្រ offline queue
+async function saveTxDirect(entry){
+  transactions.unshift(entry);
+  transactions.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(guestMode||!scriptUrl){saveLocal();return;}
+  try{
+    await postToSheet({action:'add',transaction:entry});
+    cacheSave();
+  }catch(_){
+    cacheSave();
+    queueOp({op:'add',tx:entry});
+  }
+}
+function openTransferModal(){
+  const ws=loadWallets();
+  const opts=ws.map(w=>`<option>${esc(w)}</option>`).join('');
+  document.getElementById('tfFrom').innerHTML=opts;
+  document.getElementById('tfTo').innerHTML=opts;
+  if(ws.length>1)document.getElementById('tfTo').selectedIndex=1;
+  document.getElementById('tfAmt').value='';
+  document.getElementById('tfErr').style.display='none';
+  document.getElementById('transferOverlay').classList.add('open');
+}
+document.getElementById('tfCancel').addEventListener('click',
+  ()=>document.getElementById('transferOverlay').classList.remove('open'));
+document.getElementById('transferOverlay').addEventListener('click',e=>{
+  if(e.target.id==='transferOverlay')e.target.classList.remove('open');
+});
+document.getElementById('tfSave').addEventListener('click',async()=>{
+  const err=document.getElementById('tfErr');
+  const show=m=>{err.textContent=m;err.style.display='block';};
+  err.style.display='none';
+  const from=document.getElementById('tfFrom').value;
+  const to=document.getElementById('tfTo').value;
+  const amt=calcAmount(document.getElementById('tfAmt').value);
+  const cur=document.getElementById('tfCur').value;
+  if(from===to)return show('កាបូបដើម និងទទួល ត្រូវខុសគ្នា');
+  if(!isFinite(amt)||amt<=0)return show('សូមបញ្ចូលចំនួនត្រឹមត្រូវ');
+  const btn=document.getElementById('tfSave');
+  btn.disabled=true;btn.textContent='កំពុងផ្ទេរ...';
+  const now=new Date().toISOString();
+  const base=Date.now().toString(36);
+  await saveTxDirect({id:base+'-out',type:'expense',category:'ផ្ទេរប្រាក់',amount:amt,
+    note:'ផ្ទេរទៅ '+to,date:now,currency:cur,image:'',wallet:from});
+  await saveTxDirect({id:base+'-in',type:'income',category:'ផ្ទេរប្រាក់',amount:amt,
+    note:'ផ្ទេរពី '+from,date:now,currency:cur,image:'',wallet:to});
+  btn.disabled=false;btn.textContent='ផ្ទេរ';
+  document.getElementById('transferOverlay').classList.remove('open');
+  setSync('ok','បានផ្ទេរ');
+  render();
+  celebrateSave();
+});
+
+// ═══════════════ 🧮 ម៉ាស៊ីនគិតលេខក្នុងប្រអប់ចំនួន ═══════════════
+function calcAmount(str){
+  const clean=String(str||'').replace(/,/g,'').replace(/[×x]/gi,'*').replace(/÷/g,'/').replace(/ /g,'');
+  if(!clean)return NaN;
+  if(!/^[\d+\-*/.]+$/.test(clean))return NaN;
+  if(/[+\-*/]/.test(clean.slice(1))){
+    try{
+      const v=Function('"use strict";return('+clean+')')();
+      return (typeof v==='number'&&isFinite(v))?Math.round(v*100)/100:NaN;
+    }catch(_){return NaN;}
+  }
+  return parseFloat(clean);
+}
+
+// ═══════════════ 💡 ការវិភាគស្វ័យប្រវត្តិ (Insights) ═══════════════
+function buildInsights(){
+  const out=[];
+  const cur=viewMonth;
+  const prev=new Date(cur.getFullYear(),cur.getMonth()-1,1);
+  const noTf=t=>t.category!=='ផ្ទេរប្រាក់';
+  const curTx=monthTx().filter(noTf);
+  const prevTx=transactions.filter(t=>inMonth(t.date,prev)&&noTf(t));
+  const oneR=t=>toRiel({[t.currency||'៛']:t.amount});
+  const expR=list=>toRiel(sumMap(list,'expense'));
+  const ce=expR(curTx),pe=expR(prevTx);
+  if(pe>0&&ce>0){
+    const diff=Math.round((ce-pe)/pe*100);
+    if(diff>5)out.push('📈 ខែនេះចាយច្រើនជាងខែមុន '+diff+'%');
+    else if(diff<-5)out.push('📉 ខែនេះចាយតិចជាងខែមុន '+Math.abs(diff)+'% — ល្អណាស់!');
+    else out.push('⚖️ ការចាយវាយស្ថិតថេរ ធៀបនឹងខែមុន');
+  }
+  const now=new Date();
+  const sameMonth=now.getFullYear()===cur.getFullYear()&&now.getMonth()===cur.getMonth();
+  const dcount=sameMonth?now.getDate():new Date(cur.getFullYear(),cur.getMonth()+1,0).getDate();
+  if(ce>0)out.push('🧮 ជាមធ្យមចាយ '+fm(Math.round(ce/dcount))+'៛ ក្នុងមួយថ្ងៃ');
+  const cb={};
+  curTx.filter(t=>t.type==='expense').forEach(t=>{cb[t.category]=(cb[t.category]||0)+oneR(t);});
+  const top=Object.entries(cb).sort((a,b)=>b[1]-a[1])[0];
+  if(top)out.push('🏆 ចាយច្រើនបំផុតលើ "'+top[0]+'" — '+fm(Math.round(top[1]))+'៛');
+  const wd=[0,0,0,0,0,0,0];
+  curTx.filter(t=>t.type==='expense').forEach(t=>{wd[new Date(t.date).getDay()]+=oneR(t);});
+  const wmax=Math.max.apply(null,wd);
+  if(wmax>0){
+    const names=['អាទិត្យ','ចន្ទ','អង្គារ','ពុធ','ព្រហស្បតិ៍','សុក្រ','សៅរ៍'];
+    out.push('📅 ថ្ងៃ'+names[wd.indexOf(wmax)]+' ជាថ្ងៃចាយច្រើនបំផុតរបស់អ្នក');
+  }
+  return out.slice(0,4);
+}
+
+// ═══════════════ 🤝 បំណុល-ឥណទាន ═══════════════
+const DEBT_KEY='khmer-expense-debts';
+let debtTab='owed'; // owed=គេជំពាក់ខ្ញុំ, owe=ខ្ញុំជំពាក់គេ
+function loadDebts(){
+  try{return JSON.parse(localStorage.getItem(DEBT_KEY)||'{}')[acctKey()]||[];}
+  catch(_){return[];}
+}
+function saveDebts(d){
+  try{
+    const all=JSON.parse(localStorage.getItem(DEBT_KEY)||'{}');
+    all[acctKey()]=d;
+    localStorage.setItem(DEBT_KEY,JSON.stringify(all));
+  }catch(_){}
+}
+function openDebtModal(){
+  renderDebts();
+  document.getElementById('debtOverlay').classList.add('open');
+}
+function renderDebts(){
+  document.querySelectorAll('.dtab').forEach(b=>b.classList.toggle('on',b.dataset.dt===debtTab));
+  const list=document.getElementById('debtList');
+  const items=loadDebts().filter(d=>d.type===debtTab);
+  list.innerHTML='';
+  // សរុបមិនទាន់សង
+  const tot={};
+  items.filter(d=>!d.paid).forEach(d=>{tot[d.currency]=(tot[d.currency]||0)+d.amount;});
+  const totStr=Object.keys(tot).map(c=>c==='$'?'$'+fm(tot[c]):fm(tot[c])+'៛').join(' · ');
+  if(totStr){
+    list.innerHTML+=`<p class="budnote" style="margin:0 0 6px"><b>${debtTab==='owed'?'សរុបគេជំពាក់៖':'សរុបខ្ញុំជំពាក់៖'} ${totStr}</b></p>`;
+  }
+  if(!items.length){
+    list.innerHTML+='<p class="budnote">មិនទាន់មានទេ — បន្ថែមខាងក្រោម</p>';
+    return;
+  }
+  items.sort((a,b)=>(a.paid?1:0)-(b.paid?1:0)||new Date(a.due||'2100-01-01')-new Date(b.due||'2100-01-01'));
+  items.forEach(d=>{
+    const overdue=!d.paid&&d.due&&new Date(d.due)<new Date();
+    const row=document.createElement('div');
+    row.className='recuritem'+(d.paid?' dpaid':'');
+    row.innerHTML=`
+      <span style="font-size:18px">${d.paid?'✅':(debtTab==='owed'?'🟢':'🔴')}</span>
+      <div class="rmain">${esc(d.person)} · <b>${d.currency==='$'?'$'+fm(d.amount):fm(d.amount)+'៛'}</b><br>
+        <small style="color:${overdue?'#EF4444':'var(--muted)'}">${
+          d.due?('ត្រូវសង '+d.due+(overdue?' ⚠️ ហួសកំណត់':'')):'គ្មានកំណត់'}</small></div>
+      ${d.paid?'':'<button class="dpay" title="សងរួច">✓</button>'}
+      <button class="ddel" title="លុប">✕</button>`;
+    const pay=row.querySelector('.dpay');
+    if(pay)pay.addEventListener('click',()=>{
+      const all=loadDebts();
+      const it=all.find(x=>x.id===d.id);
+      if(it)it.paid=true;
+      saveDebts(all);renderDebts();celebrateSave();
+    });
+    row.querySelector('.ddel').addEventListener('click',()=>{
+      if(!confirm('លុប "'+d.person+'" ?'))return;
+      saveDebts(loadDebts().filter(x=>x.id!==d.id));
+      renderDebts();
+    });
+    list.appendChild(row);
+  });
+}
+document.querySelectorAll('.dtab').forEach(b=>b.addEventListener('click',()=>{
+  debtTab=b.dataset.dt;renderDebts();
+}));
+document.getElementById('dbAdd').addEventListener('click',()=>{
+  const person=document.getElementById('dbPerson').value.trim();
+  const amt=calcAmount(document.getElementById('dbAmt').value);
+  if(!person)return alert('សូមបញ្ចូលឈ្មោះមនុស្ស');
+  if(!isFinite(amt)||amt<=0)return alert('សូមបញ្ចូលចំនួនត្រឹមត្រូវ');
+  const all=loadDebts();
+  all.push({
+    id:Date.now().toString(36),type:debtTab,person:person,amount:amt,
+    currency:document.getElementById('dbCur').value,
+    due:document.getElementById('dbDue').value||'',
+    paid:false,created:new Date().toISOString(),
+  });
+  saveDebts(all);
+  document.getElementById('dbPerson').value='';
+  document.getElementById('dbAmt').value='';
+  document.getElementById('dbDue').value='';
+  renderDebts();
+});
+document.getElementById('debtClose').addEventListener('click',
+  ()=>document.getElementById('debtOverlay').classList.remove('open'));
+document.getElementById('debtOverlay').addEventListener('click',e=>{
+  if(e.target.id==='debtOverlay')e.target.classList.remove('open');
+});
+
+// ═══════════════ 🎯 គោលដៅសន្សំ ═══════════════
+const GOAL_KEY='khmer-expense-goals';
+function loadGoals(){
+  try{return JSON.parse(localStorage.getItem(GOAL_KEY)||'{}')[acctKey()]||[];}
+  catch(_){return[];}
+}
+function saveGoals(g){
+  try{
+    const all=JSON.parse(localStorage.getItem(GOAL_KEY)||'{}');
+    all[acctKey()]=g;
+    localStorage.setItem(GOAL_KEY,JSON.stringify(all));
+  }catch(_){}
+}
+function openGoalModal(){
+  renderGoals();
+  document.getElementById('goalOverlay').classList.add('open');
+}
+function renderGoals(){
+  const list=document.getElementById('goalList');
+  const goals=loadGoals();
+  list.innerHTML=goals.length?'':'<p class="budnote">មិនទាន់មានគោលដៅទេ — បង្កើតខាងក្រោម</p>';
+  goals.forEach(g=>{
+    const pct=Math.min(100,Math.round(g.saved/g.target*100));
+    const done=g.saved>=g.target;
+    const row=document.createElement('div');
+    row.className='goalitem';
+    row.innerHTML=`
+      <div class="budtop">
+        <span>${done?'🎉':'🎯'} ${esc(g.name)}</span>
+        <span>${fm(g.saved)} / ${fm(g.target)}៛ (${pct}%)</span>
+      </div>
+      <div class="budbar"><div style="width:${pct}%;background:${done?'#F59E0B':'#22C55E'}"></div></div>
+      <div class="goalbtns">
+        ${done?'<b style="color:#059669">សម្រេចគោលដៅ! 🎊</b>'
+          :'<button class="gadd">＋ ដាក់ប្រាក់</button>'}
+        <button class="gdel">✕ លុប</button>
+      </div>`;
+    const ga=row.querySelector('.gadd');
+    if(ga)ga.addEventListener('click',()=>{
+      const v=calcAmount(prompt('ដាក់ប្រាក់ចូល "'+g.name+'" ចំនួន (៛)៖')||'');
+      if(!isFinite(v)||v<=0)return;
+      const all=loadGoals();
+      const it=all.find(x=>x.id===g.id);
+      if(it)it.saved+=v;
+      saveGoals(all);renderGoals();
+      if(it&&it.saved>=it.target)celebrateSave();
+    });
+    row.querySelector('.gdel').addEventListener('click',()=>{
+      if(!confirm('លុបគោលដៅ "'+g.name+'" ?'))return;
+      saveGoals(loadGoals().filter(x=>x.id!==g.id));
+      renderGoals();
+    });
+    list.appendChild(row);
+  });
+}
+document.getElementById('glAdd').addEventListener('click',()=>{
+  const name=document.getElementById('glName').value.trim();
+  const target=calcAmount(document.getElementById('glTarget').value);
+  if(!name)return alert('សូមបញ្ចូលឈ្មោះគោលដៅ');
+  if(!isFinite(target)||target<=0)return alert('សូមបញ្ចូលទឹកប្រាក់គោលដៅ');
+  const all=loadGoals();
+  all.push({id:Date.now().toString(36),name:name,target:target,saved:0,created:new Date().toISOString()});
+  saveGoals(all);
+  document.getElementById('glName').value='';
+  document.getElementById('glTarget').value='';
+  renderGoals();
+});
+document.getElementById('goalClose').addEventListener('click',
+  ()=>document.getElementById('goalOverlay').classList.remove('open'));
+document.getElementById('goalOverlay').addEventListener('click',e=>{
+  if(e.target.id==='goalOverlay')e.target.classList.remove('open');
+});
+
+// ═══════════════ 🖼️ របាយការណ៍ខែជារូបភាព (រក្សាទុក/ចែករំលែក) ═══════════════
+async function shareMonthReport(){
+  const cur=viewMonth;
+  const noTf=t=>t.category!=='ផ្ទេរប្រាក់';
+  const mtxAll=monthTx().filter(noTf);
+  const inc=toRiel(sumMap(mtxAll,'income')), exp=toRiel(sumMap(mtxAll,'expense'));
+  const byCat={};
+  mtxAll.filter(t=>t.type==='expense').forEach(t=>{
+    byCat[t.category]=(byCat[t.category]||0)+toRiel({[t.currency||'៛']:t.amount});
+  });
+  const tops=Object.entries(byCat).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const W=720,H=960;
+  const cv=document.createElement('canvas');cv.width=W;cv.height=H;
+  const x=cv.getContext('2d');
+  const g=x.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#064e3b');g.addColorStop(1,'#047857');
+  x.fillStyle=g;x.fillRect(0,0,W,H);
+  x.fillStyle='rgba(255,255,255,.07)';
+  x.beginPath();x.arc(W-50,90,150,0,7);x.fill();
+  x.beginPath();x.arc(30,H-70,120,0,7);x.fill();
+  const F='px "Kantumruy Pro","Noto Sans Khmer",sans-serif';
+  x.fillStyle='#fff';x.font='700 38'+F;
+  x.fillText('របាយការណ៍ '+KHMER_MONTHS[cur.getMonth()]+' '+cur.getFullYear(),40,86);
+  x.fillStyle='rgba(255,255,255,.85)';x.font='400 22'+F;
+  x.fillText('៛ សៀវភៅចំណូល-ចំណាយ',40,124);
+  const box=(y,label,val,col)=>{
+    x.fillStyle='rgba(255,255,255,.12)';
+    x.fillRect(40,y,W-80,90);
+    x.fillStyle='rgba(255,255,255,.8)';x.font='400 22'+F;x.fillText(label,64,y+36);
+    x.fillStyle=col;x.font='700 34'+F;x.fillText(val,64,y+74);
+  };
+  box(160,'ចំណូល',fm(Math.round(inc))+'៛','#6ee7b7');
+  box(268,'ចំណាយ',fm(Math.round(exp))+'៛','#fca5a5');
+  const bal=inc-exp;
+  box(376,'នៅសល់',(bal>=0?'+':'')+fm(Math.round(bal))+'៛',bal>=0?'#ffffff':'#fca5a5');
+  x.fillStyle='#fff';x.font='700 26'+F;
+  x.fillText('ចំណាយច្រើនបំផុត ៥',40,545);
+  const maxV=tops.length?tops[0][1]:1;
+  tops.forEach((t,i)=>{
+    const y=585+i*68;
+    x.fillStyle='rgba(255,255,255,.9)';x.font='400 21'+F;
+    x.fillText((CATEGORY_ICONS[t[0]]||'📦')+' '+t[0],40,y);
+    x.fillStyle='rgba(255,255,255,.18)';
+    x.fillRect(40,y+12,W-80,13);
+    x.fillStyle='#34d399';
+    x.fillRect(40,y+12,Math.max(8,(W-80)*t[1]/maxV),13);
+    x.fillStyle='rgba(255,255,255,.65)';x.font='400 17'+F;
+    x.fillText(fm(Math.round(t[1]))+'៛',40,y+44);
+  });
+  if(!tops.length){
+    x.fillStyle='rgba(255,255,255,.6)';x.font='400 20'+F;
+    x.fillText('គ្មានចំណាយក្នុងខែនេះទេ',40,600);
+  }
+  x.fillStyle='rgba(255,255,255,.5)';x.font='400 16'+F;
+  x.fillText('បង្កើត '+new Date().toLocaleDateString()+' · Money Note',40,H-34);
+  const blob=await new Promise(r=>cv.toBlob(r,'image/png'));
+  const fname='report-'+cur.getFullYear()+'-'+String(cur.getMonth()+1).padStart(2,'0')+'.png';
+  try{
+    const file=new File([blob],fname,{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      await navigator.share({files:[file],title:'របាយការណ៍ខែ'});
+      return;
+    }
+  }catch(_){}
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=fname;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+}
+
 // ═══════════════ 📱 ឧបករណ៍បានចូលគណនី ═══════════════
 function deviceName(){
   const ua=navigator.userAgent;
@@ -4147,6 +4729,9 @@ function handleBack(){
   if(isOpen('calOverlay')){closeCal();return true;}
   if(isOpen('pwOverlay')){document.getElementById('pwOverlay').classList.remove('open');return true;}
   if(isOpen('urlOverlay')){document.getElementById('urlOverlay').classList.remove('open');return true;}
+  if(isOpen('transferOverlay')){document.getElementById('transferOverlay').classList.remove('open');return true;}
+  if(isOpen('debtOverlay')){document.getElementById('debtOverlay').classList.remove('open');return true;}
+  if(isOpen('goalOverlay')){document.getElementById('goalOverlay').classList.remove('open');return true;}
   if(isOpen('deviceOverlay')){document.getElementById('deviceOverlay').classList.remove('open');return true;}
   if(isOpen('monthOverlay')){document.getElementById('monthOverlay').classList.remove('open');return true;}
   if(isOpen('themeOverlay')){document.getElementById('themeOverlay').classList.remove('open');return true;}
