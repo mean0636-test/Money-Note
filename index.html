@@ -15,7 +15,10 @@
 try{var _t=localStorage.getItem('khmer-expense-theme')||'auto';
 if(_t==='dark'||(_t==='auto'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)){
   document.documentElement.dataset.theme='dark';
-}}catch(e){}</script>
+}
+var _a=localStorage.getItem('khmer-expense-accent');
+if(_a)document.documentElement.dataset.accent=_a;
+}catch(e){}</script>
 <title>សៀវភៅចំណូល-ចំណាយ</title>
 <link rel="icon" href="data:,">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Khmer:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -963,6 +966,130 @@ if(_t==='dark'||(_t==='auto'&&window.matchMedia&&matchMedia('(prefers-color-sche
   html[data-theme="dark"] .setrow,html[data-theme="dark"] .statsum,
   html[data-theme="dark"] .trendcard{box-shadow:0 6px 18px rgba(0,0,0,.35);}
 
+  /* ---------- v34: ម៉ឺនុយក្រុម + ពណ៌កម្មវិធី + onboarding + skeleton + banner ---------- */
+  .sethead{
+    font-size:12px; color:var(--muted); font-weight:800; letter-spacing:.4px;
+    margin:20px 6px 8px; text-transform:uppercase;
+  }
+  .sethead:first-of-type{margin-top:14px;}
+
+  /* 🎨 ពណ៌កម្មវិធី — ប្តូរតាមចិត្ត (sync តាមគណនី) */
+  :root{--ac1:#064e3b; --ac2:#047857; --ac3:#059669; --ac4:#10b981; --acRGB:16,185,129;}
+  html[data-accent="blue"]{--ac1:#172554; --ac2:#1e40af; --ac3:#2563eb; --ac4:#3b82f6; --acRGB:59,130,246;}
+  html[data-accent="purple"]{--ac1:#2e1065; --ac2:#6d28d9; --ac3:#7c3aed; --ac4:#8b5cf6; --acRGB:139,92,246;}
+  html[data-accent="rose"]{--ac1:#4c0519; --ac2:#be123c; --ac3:#e11d48; --ac4:#f43f5e; --acRGB:244,63,94;}
+  html[data-accent="amber"]{--ac1:#451a03; --ac2:#b45309; --ac3:#d97706; --ac4:#f59e0b; --acRGB:245,158,11;}
+
+  .topbar{background:linear-gradient(135deg,var(--ac1),var(--ac2) 55%,var(--ac4)) !important;}
+  #authScreen{background:linear-gradient(135deg,var(--ac1),var(--ac3)) !important;}
+  #lockScreen{background:linear-gradient(160deg,var(--ac1),var(--ac2) 55%,var(--ac2)) !important;}
+  .authlogo{background:linear-gradient(135deg,var(--ac3),var(--ac4)) !important;
+    box-shadow:0 8px 20px rgba(var(--acRGB),.35) !important;}
+  .savebtn:not(.income),.authbtn,.getstarted{
+    background:linear-gradient(135deg,var(--ac3),var(--ac4)) !important;
+  }
+  .fab{background:linear-gradient(135deg,var(--ac3),var(--ac4)) !important;
+    box-shadow:0 10px 24px rgba(var(--acRGB),.45) !important;}
+  .sharebtn{background:linear-gradient(135deg,var(--ac3),var(--ac4)) !important;
+    box-shadow:0 8px 22px rgba(var(--acRGB),.3) !important;}
+  .mpgrid button.cur{background:linear-gradient(135deg,var(--ac3),var(--ac4)) !important;}
+  .wpill.on{background:linear-gradient(135deg,var(--ac3),var(--ac4)) !important;}
+  .navbtn.active{color:var(--ac3) !important;}
+  .navbtn.active .nico{background:rgba(var(--acRGB),.14) !important;}
+  .cwband{border-color:rgba(var(--acRGB),.5) !important; background:rgba(var(--acRGB),.06) !important;}
+  .addmore{border-color:rgba(var(--acRGB),.55) !important; background:rgba(var(--acRGB),.05) !important;
+    color:var(--ac3) !important;}
+  .wtransfer{background:rgba(var(--acRGB),.12) !important; color:var(--ac3) !important;}
+  .themeopt.cur,.coloropt.cur{border-color:var(--ac4) !important; background:rgba(var(--acRGB),.08) !important;}
+  .acctprofile{background:linear-gradient(135deg,var(--ac2),var(--ac4)) !important;}
+  .calday.sel{background:var(--ac3) !important;}
+  .calchint,.duebtn.hasval{color:var(--ac3) !important;}
+  .duebtn.hasval{border-color:var(--ac4) !important; background:rgba(var(--acRGB),.08) !important;}
+
+  .cdot{
+    display:inline-block; width:14px; height:14px; border-radius:50%;
+    vertical-align:middle; box-shadow:0 0 0 2px rgba(255,255,255,.6) inset;
+  }
+  .colorgrid{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:14px;}
+  .coloropt{
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+    border:1px solid var(--line); background:var(--bg); border-radius:14px;
+    padding:10px 12px; font-family:inherit; cursor:pointer; min-width:60px;
+    transition:all .2s;
+  }
+  .coloropt small{color:var(--ink); font-size:11.5px;}
+  .cdot.big{
+    width:38px; height:38px; display:flex; align-items:center; justify-content:center;
+    color:#fff; font-weight:800; font-size:16px;
+    box-shadow:0 4px 12px rgba(0,0,0,.18);
+  }
+
+  /* ⚠️ Banner បំណុលដល់ថ្ងៃសង */
+  .debtbanner{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    margin:12px 16px 0; padding:11px 14px; border-radius:14px;
+    background:rgba(245,158,11,.13); border:1px solid rgba(245,158,11,.4);
+    color:var(--ink); font-size:12.8px; line-height:1.6; cursor:pointer;
+    animation:cardFloat .35s ease;
+  }
+  .debtbanner.over{background:rgba(239,68,68,.1); border-color:rgba(239,68,68,.45);}
+  .debtbanner .dbx{
+    color:var(--muted); font-weight:800; padding:2px 6px; flex-shrink:0; cursor:pointer;
+  }
+
+  /* 💀 Skeleton — ក្រឡាភ្លឹបភ្លែតពេលកំពុងទាញ */
+  .skel{
+    margin:12px 16px 0; border-radius:20px;
+    background:linear-gradient(90deg,var(--bg2) 25%,rgba(148,163,184,.18) 50%,var(--bg2) 75%);
+    background-size:200% 100%;
+    animation:shimmer 1.15s linear infinite;
+  }
+  @keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+
+  /* 🚀 Onboarding */
+  #onboardScreen{
+    position:absolute; inset:0; z-index:280; display:none; flex-direction:column;
+    background:linear-gradient(160deg,var(--ac1),var(--ac2));
+    color:#fff;
+  }
+  #obSkip{
+    position:absolute; top:16px; right:18px; z-index:2;
+    background:rgba(255,255,255,.15); border:none; color:#fff;
+    border-radius:999px; padding:7px 16px; font-family:inherit; font-size:13px; cursor:pointer;
+  }
+  .obtrack{
+    flex:1; display:flex; overflow-x:auto; scroll-snap-type:x mandatory;
+    scrollbar-width:none; -webkit-overflow-scrolling:touch;
+  }
+  .obtrack::-webkit-scrollbar{display:none;}
+  .obslide{
+    flex:0 0 100%; scroll-snap-align:center;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:40px 34px; gap:14px;
+  }
+  .obart{
+    font-size:74px; line-height:1;
+    background:rgba(255,255,255,.12); border-radius:34px;
+    width:140px; height:140px; display:flex; align-items:center; justify-content:center;
+    box-shadow:0 18px 48px rgba(0,0,0,.25);
+  }
+  .obslide h2{margin:6px 0 0; font-size:21px; font-weight:800;}
+  .obslide p{margin:0; font-size:14px; line-height:1.9; color:rgba(255,255,255,.88);}
+  .obslide p b{color:#fff;}
+  .obdots{display:flex; gap:7px; justify-content:center; padding:6px 0 14px;}
+  .obdot{
+    width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.35);
+    transition:all .25s;
+  }
+  .obdot.on{background:#fff; width:22px; border-radius:99px;}
+  .obbtn{
+    margin:0 26px 30px; padding:15px; border:none; border-radius:999px;
+    background:#fff; color:var(--ac2); font-family:inherit; font-size:15.5px;
+    font-weight:800; cursor:pointer; box-shadow:0 10px 30px rgba(0,0,0,.28);
+    transition:transform .15s;
+  }
+  .obbtn:active{transform:scale(.97);}
+
   /* ---------- v32: ✓ ភ្លឺ + modal អណ្តែត + batch + ប្រតិទិនបំណុល ---------- */
   #savedPop span{
     background:radial-gradient(circle at 32% 28%, #86efac, #22c55e 72%);
@@ -1695,6 +1822,47 @@ if(_t==='dark'||(_t==='auto'&&window.matchMedia&&matchMedia('(prefers-color-sche
   </div>
 </div>
 
+<!-- 🚀 ការណែនាំលើកដំបូង (Onboarding) -->
+<div id="onboardScreen">
+  <button id="obSkip">រំលង</button>
+  <div class="obtrack" id="obTrack">
+    <div class="obslide">
+      <div class="obart">🧾</div>
+      <h2>កត់ត្រាលឿនរហ័ស</h2>
+      <p>ចុច ＋ ដើម្បីកត់ត្រា · វាយ <b>5000+3500</b> គិតឱ្យស្រេច · ចុច <b>"បន្ថែមមុខទៀត"</b> បញ្ចូលច្រើនមុខ រក្សាទុកម្តងចប់</p>
+    </div>
+    <div class="obslide">
+      <div class="obart">👈</div>
+      <h2>អូស និងទាញ</h2>
+      <p><b>អូសកំណត់ត្រាទៅឆ្វេង</b> ដើម្បីកែ ✏️ ឬលុប 🗑️ · <b>ទាញបញ្ជីចុះក្រោម</b> ដើម្បីធ្វើសមកាលកម្មភ្លាមៗ</p>
+    </div>
+    <div class="obslide">
+      <div class="obart">🎯</div>
+      <h2>គ្រប់គ្រងលុយឆ្លាតវៃ</h2>
+      <p>ក្នុងម៉ឺនុយ <b>ផ្សេងៗ</b>៖ ថវិកាប្រចាំខែ · បំណុល-ឥណទាន · គោលដៅសន្សំ · កាបូបច្រើន (ABA, Wing...) · ការវិភាគស្វ័យប្រវត្តិ</p>
+    </div>
+    <div class="obslide">
+      <div class="obart">☁️</div>
+      <h2>សុវត្ថិភាព គ្រប់ឧបករណ៍</h2>
+      <p>ចូលគណនី → ទិន្នន័យ និងការកំណត់ <b>ដូចគ្នាគ្រប់ទូរសព្ទ</b> · ចាក់សោដោយ <b>PIN/ក្រយៅដៃ</b> 🔒 · ដំណើរការ <b>offline</b> ពេញលេញ</p>
+    </div>
+  </div>
+  <div class="obdots">
+    <span class="obdot on"></span><span class="obdot"></span><span class="obdot"></span><span class="obdot"></span>
+  </div>
+  <button class="obbtn" id="obNext">បន្ទាប់ →</button>
+  <button class="obbtn" id="obDone" style="display:none">ចាប់ផ្តើមប្រើ 🎉</button>
+</div>
+
+<!-- 🎨 ជ្រើសពណ៌កម្មវិធី -->
+<div class="pwoverlay" id="colorOverlay">
+  <div class="authcard pwcard">
+    <h3>🎨 ពណ៌កម្មវិធី</h3>
+    <div class="colorgrid" id="colorGrid"></div>
+    <div class="pwbtns"><button class="pwcancel" id="colorClose" style="flex:1">បិទ</button></div>
+  </div>
+</div>
+
 <!-- 🔁 ផ្ទេរប្រាក់រវាងកាបូប -->
 <div class="pwoverlay" id="transferOverlay">
   <div class="authcard pwcard">
@@ -1934,6 +2102,7 @@ async function fetchAll(){
   }
   await flushQueue(); // ផ្ទុកកំណត់ត្រារង់ចាំឡើងសិន
   setSync('busy','កំពុងទាញយក...');
+  if(!transactions.length)renderSkeleton(); // ក្រឡាភ្លឹបភ្លែត ខណៈទាញលើកដំបូង
   try{
     const res=await fetch(scriptUrl+'?token='+encodeURIComponent(authToken));
     const data=await res.json();
@@ -2153,6 +2322,7 @@ function renderDaily(c){
       return;
     }
   }else{
+    c.innerHTML+=renderDebtBanner(); // ⚠️ រំលឹកបំណុលដល់/ជិតដល់ថ្ងៃសង
     c.innerHTML+=renderQuickCard();  // 💡 សង្ខេបរហ័ស៖ ថ្ងៃនេះចាយ + ខែនេះនៅសល់
     c.innerHTML+=renderBudgetCard(); // 🎯 កាតថវិកា (បើបានកំណត់)
     if(mtx.length===0){
@@ -2495,31 +2665,36 @@ function renderMore(c){
         <button class="pbtn danger" id="setLogout">🚪 ចាកចេញ</button>
       </div>`:''}
     </div>`;
+  // ═══ ក្រុមទី ១ ៖ ហិរញ្ញវត្ថុ ═══
+  rows+=`<div class="sethead">💰 ហិរញ្ញវត្ថុ</div>`;
+  rows+=`<div class="setrow" id="setBudget"><span class="l">🎯 ថវិកាប្រចាំខែ</span><span class="r">›</span></div>`;
+  rows+=`<div class="setrow" id="setDebts"><span class="l">🤝 បំណុល-ឥណទាន</span><span class="r">›</span></div>`;
+  rows+=`<div class="setrow" id="setGoals"><span class="l">🏆 គោលដៅសន្សំ</span><span class="r">›</span></div>`;
+  rows+=`<div class="setrow" id="setRecur"><span class="l">🔁 ប្រតិបត្តិការដដែលៗ</span><span class="r">›</span></div>`;
+  rows+=`<div class="setrow" id="setRate"><span class="l">💱 អត្រាប្តូរប្រាក់</span><span class="r">1$ = ${fm(usdRate)}៛ ›</span></div>`;
+  rows+=`<div class="setrow" id="setRateAuto"><span class="l">📈 អត្រាស្វ័យប្រវត្តិ (តាមទីផ្សារ)</span><span class="r">${rateAuto?'បើក ✓':'បិទ'} ›</span></div>`;
+
+  // ═══ ក្រុមទី ២ ៖ ការកំណត់ ═══
+  rows+=`<div class="sethead">⚙️ ការកំណត់</div>`;
+  rows+=`<div class="setrow" id="setTheme"><span class="l">🌓 រូបរាង (Theme)</span><span class="r">${THEME_LABELS[themeMode]} ›</span></div>`;
+  rows+=`<div class="setrow" id="setColor"><span class="l">🎨 ពណ៌កម្មវិធី</span><span class="r"><span class="cdot" style="background:${(ACCENTS.find(a=>a.id===accentMode)||ACCENTS[0]).c}"></span> ›</span></div>`;
+  rows+=`<div class="setrow" id="setLock"><span class="l">🔒 ចាក់សោកម្មវិធី (PIN/ក្រយៅដៃ)</span><span class="r">${loadLock()?'បើក ✅':'បិទ'} ›</span></div>`;
+  rows+=`<div class="setrow" id="setLoc"><span class="l">📍 កត់ត្រាទីតាំង (GPS)</span><span class="r">${locEnabled()?'បើក ✅':'បិទ'} ›</span></div>`;
+  if(!((window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone)){
+    rows+=`<div class="setrow" id="setInstall"><span class="l">📲 ដំឡើងជា App លើទូរសព្ទ</span><span class="r">›</span></div>`;
+  }
+
+  // ═══ ក្រុមទី ៣ ៖ គណនី និងទិន្នន័យ ═══
+  rows+=`<div class="sethead">☁️ គណនី និងទិន្នន័យ</div>`;
   if(!scriptUrl){
     rows+=`<div class="setrow" id="setConnect"><span class="l">🔗 ភ្ជាប់ Google Sheets</span><span class="r">›</span></div>`;
   }else if(guestMode){
     rows+=`<div class="setrow" id="setLogin"><span class="l">🔑 ចូល / ចុះឈ្មោះគណនី</span><span class="r">›</span></div>`;
-    rows+=`<div class="setrow" id="setConnect"><span class="l">🔗 ប្តូរ URL Google Sheets</span><span class="r">›</span></div>`;
   }else{
-    rows+=`<div class="setrow" id="setRefresh"><span class="l">🔄 ទាញយកទិន្នន័យឡើងវិញ</span><span class="r">›</span></div>`;
-    rows+=`<div class="setrow" id="setConnect"><span class="l">🔗 ប្តូរ URL Google Sheets</span><span class="r">›</span></div>`;
-  }
-  if(!((window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone)){
-    rows+=`<div class="setrow" id="setInstall"><span class="l">📲 ដំឡើងជា App លើទូរសព្ទ</span><span class="r">›</span></div>`;
-  }
-  rows+=`<div class="setrow" id="setTheme"><span class="l">🌓 រូបរាង (Theme)</span><span class="r">${THEME_LABELS[themeMode]} ›</span></div>`;
-  rows+=`<div class="setrow" id="setBudget"><span class="l">🎯 ថវិកាប្រចាំខែ</span><span class="r">›</span></div>`;
-  rows+=`<div class="setrow" id="setRecur"><span class="l">🔁 ប្រតិបត្តិការដដែលៗ</span><span class="r">›</span></div>`;
-  rows+=`<div class="setrow" id="setLock"><span class="l">🔒 ចាក់សោកម្មវិធី (PIN/ក្រយៅដៃ)</span><span class="r">${loadLock()?'បើក ✅':'បិទ'} ›</span></div>`;
-  rows+=`<div class="setrow" id="setLoc"><span class="l">📍 កត់ត្រាទីតាំង (GPS)</span><span class="r">${locEnabled()?'បើក ✅':'បិទ'} ›</span></div>`;
-  if(!guestMode&&scriptUrl){
     rows+=`<div class="setrow" id="setDevices"><span class="l">📱 ឧបករណ៍បានចូលគណនី</span><span class="r">›</span></div>`;
     rows+=`<div class="setrow" id="setSyncNow"><span class="l">☁️ សមកាលកម្មការកំណត់ឥឡូវ</span><span class="r">${setMeta()?fmtAgo(setMeta()):'—'} ›</span></div>`;
+    rows+=`<div class="setrow" id="setRefresh"><span class="l">🔄 ទាញយកទិន្នន័យឡើងវិញ</span><span class="r">›</span></div>`;
   }
-  rows+=`<div class="setrow" id="setDebts"><span class="l">🤝 បំណុល-ឥណទាន</span><span class="r">›</span></div>`;
-  rows+=`<div class="setrow" id="setGoals"><span class="l">🎯 គោលដៅសន្សំ</span><span class="r">›</span></div>`;
-  rows+=`<div class="setrow" id="setRate"><span class="l">💱 អត្រាប្តូរប្រាក់</span><span class="r">1$ = ${fm(usdRate)}៛ ›</span></div>`;
-  rows+=`<div class="setrow" id="setRateAuto"><span class="l">🔁 អត្រាស្វ័យប្រវត្តិ (តាមទីផ្សារ)</span><span class="r">${rateAuto?'បើក ✓':'បិទ'} ›</span></div>`;
   rows+=`<div class="setrow" id="setCsv"><span class="l">📤 ទាញចេញជា Excel (CSV)</span><span class="r">›</span></div>`;
   rows+=`<div class="setrow" id="setJson"><span class="l">🗄️ បម្រុងទុកទាំងអស់ (JSON)</span><span class="r">›</span></div>`;
   rows+=`<div class="setrow" id="setRestore"><span class="l">📥 ស្តារទិន្នន័យ (Restore)</span><span class="r">›</span></div>`;
@@ -2530,6 +2705,7 @@ function renderMore(c){
   on('setConnect',openUrlModal);
   on('setInstall',installApp);
   on('setTheme',openThemeModal);
+  on('setColor',openColorModal);
   on('setBudget',openBudgetModal);
   on('setRecur',openRecurModal);
   on('setLock',openLockModal);
@@ -3150,6 +3326,7 @@ function showAuth(){
 }
 // enterApp(): បន្ទាប់ពីចូល/ចុះឈ្មោះជោគជ័យ — បង្ហាញអេក្រង់សំខាន់ ហើយផ្ទុកទិន្នន័យពី Google Sheets
 async function enterApp(preTx){
+  setTimeout(maybeOnboard,650); // 🚀 ណែនាំលើកដំបូង (បង្ហាញតែម្តងគត់)
   guestMode=false;
   saveSession(true);
   const hasPre=Array.isArray(preTx);
@@ -3624,6 +3801,7 @@ document.querySelectorAll('img.noteimg').forEach(el=>{
 // ---------- ចាប់ផ្តើម ----------
 // enterGuest(resetCount): ចូលប្រើកម្មវិធីជា "អ្នកភ្ញៀវ" ដោយមិនចូលគណនី — ទិន្នន័យរក្សាក្នុងម៉ាស៊ីនតែប៉ុណ្ណោះ
 function enterGuest(resetCount){
+  setTimeout(maybeOnboard,650); // 🚀 ណែនាំលើកដំបូង (បង្ហាញតែម្តងគត់)
   guestMode=true;currentUser='';authToken='';
   document.getElementById('authScreen').classList.remove('open');
   document.getElementById('setupScreen').style.display='none';
@@ -3676,6 +3854,109 @@ function startApp(){
   }
   showAuth(); // មិនទាន់ចូលគណនី → splash → welcome → ចូល/ចុះឈ្មោះ (តែម្តងគត់)
 }
+// ═══════════════ 🎨 ពណ៌កម្មវិធី (Accent color) ═══════════════
+const ACCENT_KEY='khmer-expense-accent';
+const ACCENTS=[
+  {id:'',      name:'បៃតង',    c:'#10b981', meta:'#064e3b'},
+  {id:'blue',  name:'ខៀវ',     c:'#3b82f6', meta:'#172554'},
+  {id:'purple',name:'ស្វាយ',    c:'#8b5cf6', meta:'#2e1065'},
+  {id:'rose',  name:'ផ្កាឈូក',  c:'#f43f5e', meta:'#4c0519'},
+  {id:'amber', name:'ទឹកក្រូច', c:'#f59e0b', meta:'#451a03'},
+];
+let accentMode=localStorage.getItem(ACCENT_KEY)||'';
+function applyAccent(){
+  if(accentMode)document.documentElement.dataset.accent=accentMode;
+  else delete document.documentElement.dataset.accent;
+  try{applyTheme();}catch(_){} // ធ្វើឱ្យ meta theme-color ត្រូវតាមពណ៌
+}
+function openColorModal(){
+  const g=document.getElementById('colorGrid');
+  g.innerHTML='';
+  ACCENTS.forEach(a=>{
+    const b=document.createElement('button');
+    b.className='coloropt'+(accentMode===a.id?' cur':'');
+    b.innerHTML=`<span class="cdot big" style="background:${a.c}">${accentMode===a.id?'✓':''}</span><small>${a.name}</small>`;
+    b.addEventListener('click',()=>{
+      accentMode=a.id;
+      localStorage.setItem(ACCENT_KEY,accentMode);
+      applyAccent();
+      settingsPush(); // ☁️ ពណ៌ក៏ sync គ្រប់ឧបករណ៍ដែរ
+      document.getElementById('colorOverlay').classList.remove('open');
+      render();
+    });
+    g.appendChild(b);
+  });
+  document.getElementById('colorOverlay').classList.add('open');
+}
+document.getElementById('colorClose').addEventListener('click',
+  ()=>document.getElementById('colorOverlay').classList.remove('open'));
+document.getElementById('colorOverlay').addEventListener('click',e=>{
+  if(e.target.id==='colorOverlay')e.target.classList.remove('open');
+});
+
+// ═══════════════ ⚠️ រំលឹកបំណុលដល់ថ្ងៃសង ═══════════════
+let debtBannerHidden=false;
+function renderDebtBanner(){
+  if(debtBannerHidden)return '';
+  const soon=Date.now()+3*86400000; // ៣ ថ្ងៃមុនកំណត់
+  const items=loadDebts().filter(d=>!d.paid&&d.due&&new Date(d.due+'T23:59:59').getTime()<=soon);
+  if(!items.length)return '';
+  const over=items.some(d=>new Date(d.due+'T23:59:59')<new Date());
+  const names=items.slice(0,3).map(d=>esc(d.person)).join(', ');
+  return `<div class="debtbanner ${over?'over':''}" id="debtBanner">
+    <span>${over?'⚠️ បំណុលហួសថ្ងៃសង៖':'⏰ បំណុលជិតដល់ថ្ងៃសង៖'}
+      <b>${names}${items.length>3?' +'+(items.length-3):''}</b></span>
+    <b class="dbx" id="debtBannerX">✕</b>
+  </div>`;
+}
+
+// ═══════════════ 💀 Skeleton loading (ក្រឡាភ្លឹបភ្លែតៗ) ═══════════════
+function renderSkeleton(){
+  const c=document.getElementById('content');
+  if(!c)return;
+  let html='';
+  html+='<div class="skel" style="height:66px; margin-top:12px;"></div>';
+  for(let i=0;i<3;i++){
+    html+='<div class="skel" style="height:'+(96+i*18)+'px"></div>';
+  }
+  c.innerHTML=html;
+}
+
+// ═══════════════ 🚀 ការណែនាំលើកដំបូង (Onboarding) ═══════════════
+const ONBOARD_KEY='khmer-expense-onboarded';
+function maybeOnboard(){
+  try{if(localStorage.getItem(ONBOARD_KEY))return;}catch(_){return;}
+  const sc=document.getElementById('onboardScreen');
+  if(!sc||sc.style.display==='flex')return;
+  sc.style.display='flex';
+  const track=document.getElementById('obTrack');
+  const dots=Array.prototype.slice.call(document.querySelectorAll('.obdot'));
+  const upd=()=>{
+    const i=Math.max(0,Math.min(dots.length-1,Math.round(track.scrollLeft/track.clientWidth)));
+    dots.forEach((d,j)=>d.classList.toggle('on',j===i));
+    const last=i>=dots.length-1;
+    document.getElementById('obDone').style.display=last?'block':'none';
+    document.getElementById('obNext').style.display=last?'none':'block';
+  };
+  if(!track._wired){
+    track._wired=true;
+    track.addEventListener('scroll',()=>{
+      clearTimeout(track._t);track._t=setTimeout(upd,70);
+    },{passive:true});
+  }
+  upd();
+}
+function finishOnboard(){
+  try{localStorage.setItem(ONBOARD_KEY,'1');}catch(_){}
+  document.getElementById('onboardScreen').style.display='none';
+}
+document.getElementById('obSkip').addEventListener('click',finishOnboard);
+document.getElementById('obDone').addEventListener('click',finishOnboard);
+document.getElementById('obNext').addEventListener('click',()=>{
+  const track=document.getElementById('obTrack');
+  track.scrollTo({left:track.scrollLeft+track.clientWidth,behavior:'smooth'});
+});
+
 // ═══════════════ ☁️ សមកាលកម្មការកំណត់ គ្រប់ឧបករណ៍ (គណនីតែមួយ = ដូចគ្នាទាំងអស់) ═══════════════
 // ថវិកា · ដដែលៗ · បំណុល · គោលដៅ · កាបូប · PIN · Theme · GPS → រក្សាលើ server តាមគណនី
 const SETMETA_KEY='khmer-expense-setmeta';
@@ -3702,6 +3983,7 @@ function collectSettings(){
     wallets:loadWallets(),
     lock:lk?{hash:lk.hash,len:lk.len}:null, // ក្រយៅដៃ (credId) ជាប់តាមឧបករណ៍ — មិន sync ទេ
     theme:themeMode,
+    accent:accentMode,
     loc:locEnabled(),
   };
 }
@@ -3723,6 +4005,11 @@ function applySettings(o){
       themeMode=o.theme;
       localStorage.setItem(THEME_KEY,themeMode);
       applyTheme();
+    }
+    if(o.accent!==undefined&&String(o.accent||'')!==accentMode){
+      accentMode=String(o.accent||'');
+      localStorage.setItem(ACCENT_KEY,accentMode);
+      applyAccent();
     }
     localStorage.setItem(LOC_KEY,o.loc?'1':'');
   }catch(_){}
@@ -4735,6 +5022,15 @@ function renderBudgetCard(){
 function hookBudgetCard(){
   const el=document.getElementById('budCard');
   if(el)el.addEventListener('click',openBudgetModal);
+  const bn=document.getElementById('debtBanner');
+  if(bn){
+    bn.addEventListener('click',e=>{
+      if(e.target.id==='debtBannerX'){
+        debtBannerHidden=true;render();return; // លាក់រហូតបើកកម្មវិធីម្តងទៀត
+      }
+      openDebtModal();
+    });
+  }
 }
 function openBudgetModal(){
   const b=loadBudgets();
@@ -4985,7 +5281,7 @@ function applyTheme(){
   if(dark)document.documentElement.dataset.theme='dark';
   else delete document.documentElement.dataset.theme;
   const m=document.querySelector('meta[name="theme-color"]');
-  if(m)m.content=dark?'#0d1117':'#064e3b';
+  if(m)m.content=dark?'#0d1117':((ACCENTS.find(a=>a.id===accentMode)||ACCENTS[0]).meta);
 }
 applyTheme();
 if(window.matchMedia){
@@ -5041,6 +5337,7 @@ function handleBack(){
   if(isOpen('calOverlay')){closeCal();return true;}
   if(isOpen('pwOverlay')){document.getElementById('pwOverlay').classList.remove('open');return true;}
   if(isOpen('urlOverlay')){document.getElementById('urlOverlay').classList.remove('open');return true;}
+  if(isOpen('colorOverlay')){document.getElementById('colorOverlay').classList.remove('open');return true;}
   if(isOpen('transferOverlay')){document.getElementById('transferOverlay').classList.remove('open');return true;}
   if(isOpen('debtOverlay')){document.getElementById('debtOverlay').classList.remove('open');return true;}
   if(isOpen('goalOverlay')){document.getElementById('goalOverlay').classList.remove('open');return true;}
