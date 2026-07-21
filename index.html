@@ -2514,6 +2514,7 @@ function renderMore(c){
   rows+=`<div class="setrow" id="setLoc"><span class="l">📍 កត់ត្រាទីតាំង (GPS)</span><span class="r">${locEnabled()?'បើក ✅':'បិទ'} ›</span></div>`;
   if(!guestMode&&scriptUrl){
     rows+=`<div class="setrow" id="setDevices"><span class="l">📱 ឧបករណ៍បានចូលគណនី</span><span class="r">›</span></div>`;
+    rows+=`<div class="setrow" id="setSyncNow"><span class="l">☁️ សមកាលកម្មការកំណត់ឥឡូវ</span><span class="r">${setMeta()?fmtAgo(setMeta()):'—'} ›</span></div>`;
   }
   rows+=`<div class="setrow" id="setDebts"><span class="l">🤝 បំណុល-ឥណទាន</span><span class="r">›</span></div>`;
   rows+=`<div class="setrow" id="setGoals"><span class="l">🎯 គោលដៅសន្សំ</span><span class="r">›</span></div>`;
@@ -2533,6 +2534,28 @@ function renderMore(c){
   on('setRecur',openRecurModal);
   on('setLock',openLockModal);
   on('setDevices',openDevicesModal);
+  on('setSyncNow',async()=>{
+    setSync('busy','កំពុងធ្វើសមកាលកម្មការកំណត់...');
+    try{
+      await settingsPull(); // យកថ្មីពី server មុន (បើមាន)
+      const updated=new Date().toISOString();
+      await postToSheet({
+        action:'setSettings',
+        settings:JSON.stringify(collectSettings()),
+        updated:updated,
+      });
+      setMetaSave(updated);settingsDirty=false;
+      setSync('ok','ការកំណត់បានសមកាលកម្ម ✓');
+      alert('☁️ ជោគជ័យ! ការកំណត់ (ថវិកា · បំណុល · គោលដៅ · កាបូប · PIN ...) បានរក្សាលើគណនី។\n\nលើទូរសព្ទផ្សេង៖ បើកកម្មវិធី → ចុចជួរនេះដដែល ដើម្បីទាញភ្លាម');
+      render();
+    }catch(e){
+      const old=String(e.message).indexOf('Unknown action')>=0;
+      alert(old
+        ?'⚠️ Server នៅជា version ចាស់ — ការ sync មិនទាន់ដំណើរការទេ។\n\nសូមចូល Google Apps Script → បិទភ្ជាប់កូដ v11 ថ្មី → Save → Deploy → Manage deployments → ✏️ → New version → Deploy'
+        :'បរាជ័យ៖ '+e.message+'\nសូមពិនិត្យអ៊ីនធឺណិត រួចព្យាយាមម្តងទៀត');
+      setSync('err',old?'Server ចាស់ — Deploy v11':'សមកាលកម្មបរាជ័យ');
+    }
+  });
   on('setDebts',openDebtModal);
   on('setGoals',openGoalModal);
   on('setLoc',()=>{
@@ -2894,6 +2917,13 @@ function openForm(type,tx){
   selectedWallet=tx?(tx.wallet||'សាច់ប្រាក់'):(selectedWallet||'សាច់ប្រាក់');
   buildChips(); buildWalletRow(); setPhotoPreview();
   batchItems=[]; renderBatchList(); // ចាប់ផ្តើមបញ្ជីច្រើនមុខថ្មី
+  // 📍 ចាប់ GPS + ឈ្មោះកន្លែង ជាមុនពីក្រោយ — ដល់ពេលរក្សាទុក រួចស្រាប់ (មិនរង់ចាំទេ)
+  locPrefetch=(!tx&&locEnabled())?(async()=>{
+    const ll=await getLocation();
+    if(!ll)return null;
+    const nm=await placeName(ll);
+    return {ll:ll,nm:nm};
+  })():null;
   document.getElementById('overlay').classList.add('open');
 }
 // closeForm(): បិទសន្លឹកបញ្ចូលប្រតិបត្តិការ
@@ -2999,61 +3029,53 @@ document.getElementById('saveBtn').addEventListener('click',async()=>{
   };
   const btn=document.getElementById('saveBtn');
   btn.disabled=true;btn.textContent='កំពុងរក្សាទុក...';
-  // 📍 កត់ត្រាទីតាំង + ឈ្មោះកន្លែងពិត (បើបើកក្នុងម៉ឺនុយ ផ្សេងៗ) — កំណត់ត្រាថ្មីប៉ុណ្ណោះ
-  if(!isEdit&&locEnabled()&&entry.note.indexOf('📍')===-1){
-    const ll=await getLocation();
-    if(ll){
-      const nm=await placeName(ll);
-      entry.note=(entry.note?entry.note+' ':'')+'📍'+(nm?'['+nm+']':'')+'('+ll+')';
+  // 📍 ទីតាំងបានចាប់រួចជាមុនតាំងពីបើក form — រង់ចាំយ៉ាងច្រើន 0.6 វិនាទីប៉ុណ្ណោះ
+  if(!isEdit&&locEnabled()&&entry.note.indexOf('📍')===-1&&locPrefetch){
+    const r=await Promise.race([
+      locPrefetch,
+      new Promise(res=>setTimeout(()=>res(undefined),600)),
+    ]);
+    if(r&&r.ll){
+      entry.note=(entry.note?entry.note+' ':'')+'📍'+(r.nm?'['+r.nm+']':'')+'('+r.ll+')';
     }
   }
-  setSync('busy','កំពុងផ្ញើ...');
+  // ⚡ រក្សាទុកភ្លាមៗ (optimistic)៖ បង្ហាញក្នុងបញ្ជីមុន → ផ្ញើទៅ server ពីក្រោយ
   if(!isEdit){
-    // 🧺 រក្សាទុកបានច្រើនមុខម្តង (batch) — មុខដែលបានបន្ថែម + មុខកំពុងបំពេញ
-    const items=batchItems.slice();
-    if(hasCur)items.push(null); // null = entry បច្ចុប្បន្ន
+    // 🧺 ច្រើនមុខម្តង (batch) — មុខដែលបានបន្ថែម + មុខកំពុងបំពេញ
+    const items=[];
     const base=Date.now().toString(36);
-    for(let i=0;i<items.length;i++){
-      const it=items[i];
-      const e2=(it===null)?entry:{
+    batchItems.forEach((it,i)=>{
+      items.push({
         id:base+'-'+i+Math.random().toString(36).slice(2,4),
         type:formType,category:it.category,amount:it.amount,
         note:it.note||'',date:dateIso,currency:it.currency,
         image:it.image||'',wallet:it.wallet||'សាច់ប្រាក់',
-      };
-      await saveTxDirect(e2); // ដោះស្រាយ guest / online / offline-queue ដោយឯង
-    }
+      });
+    });
+    if(hasCur)items.push(entry);
     batchItems=[];renderBatchList();
-    if(guestMode||!scriptUrl)setSync('idle','ទិន្នន័យរក្សាក្នុងម៉ាស៊ីន');
-    else if(!loadQueue().length)setSync('ok','បានធ្វើសមកាលកម្ម');
     editingTx=null;
-    closeForm();render();
-    celebrateSave(); // ✓ បៃតងខ្ចីភ្លឺលោត + សំឡេងតិចៗ
+    closeForm();
+    celebrateSave(); // ✓ បៃតងខ្ចីភ្លឺលោតភ្លាម — មិនរង់ចាំ server ទេ
     btn.disabled=false;btn.textContent='រក្សាទុក';
+    saveManyBackground(items); // បញ្ចូលក្នុងបញ្ជី + ផ្ញើពីក្រោយ (offline ក៏មិនបាត់)
+    render();
     return;
   }
-  try{
-    if(guestMode){
-      transactions=transactions.map(t=>t.id===entry.id?entry:t);
-      saveLocal();
-      setSync('idle','ទិន្នន័យរក្សាក្នុងម៉ាស៊ីន');
-    }else{
-      await postToSheet({action:'update',transaction:entry});
-      transactions=transactions.map(t=>t.id===entry.id?entry:t);
-      cacheSave();
-      setSync('ok','បានធ្វើសមកាលកម្ម');
-    }
-    editingTx=null;
-    closeForm();render();
-    celebrateSave();
-  }catch(e){
-    // គ្មានអ៊ីនធឺណិត → រក្សាក្នុងម៉ាស៊ីន ដាក់ជួររង់ចាំ
-    transactions=transactions.map(t=>t.id===entry.id?entry:t);
-    cacheSave();
-    queueOp({op:'update',tx:entry});
-    editingTx=null;
-    closeForm();render();
-    celebrateSave();
+  // កែកំណត់ត្រាចាស់ — ក៏ភ្លាមៗដែរ
+  transactions=transactions.map(t=>t.id===entry.id?entry:t);
+  editingTx=null;
+  closeForm();render();
+  celebrateSave();
+  btn.disabled=false;btn.textContent='រក្សាទុក';
+  if(guestMode||!scriptUrl){
+    saveLocal();
+    setSync('idle','ទិន្នន័យរក្សាក្នុងម៉ាស៊ីន');
+  }else{
+    setSync('busy','កំពុងផ្ញើ...');
+    postToSheet({action:'update',transaction:entry})
+      .then(()=>{cacheSave();if(!loadQueue().length)setSync('ok','បានធ្វើសមកាលកម្ម');})
+      .catch(()=>{cacheSave();queueOp({op:'update',tx:entry});});
   }
 });
 
@@ -3706,8 +3728,18 @@ function applySettings(o){
   }catch(_){}
   applyingSettings=false;
 }
+let settingsDirty=false;
+function syncServerOld(e){
+  // Apps Script នៅ version ចាស់ → ប្រាប់អ្នកប្រើច្បាស់ៗ (កុំបរាជ័យស្ងាត់ៗ)
+  if(String(e&&e.message).indexOf('Unknown action')>=0){
+    setSync('err','⚠️ Server ចាស់ — Deploy Apps Script v11 (New version)');
+    return true;
+  }
+  return false;
+}
 function settingsPush(){
   if(applyingSettings||guestMode||!scriptUrl||!authToken)return;
+  settingsDirty=true;
   clearTimeout(setPushTimer);
   setPushTimer=setTimeout(async()=>{
     try{
@@ -3718,8 +3750,31 @@ function settingsPush(){
         updated:updated,
       });
       setMetaSave(updated);
-    }catch(_){}
-  },1200); // debounce — ប្តូរច្រើនដងជាប់គ្នា ផ្ញើតែម្តង
+      settingsDirty=false;
+    }catch(e){syncServerOld(e);}
+  },250); // ផ្ញើស្ទើរភ្លាមៗ
+}
+// ផ្ញើភ្លាមមុនកម្មវិធីបិទ/លាក់ (sendBeacon ធានាដល់ទោះទំព័របិទ)
+function flushSettingsNow(){
+  if(!settingsDirty||applyingSettings||guestMode||!scriptUrl||!authToken)return;
+  clearTimeout(setPushTimer);
+  try{
+    const updated=new Date().toISOString();
+    const payload=JSON.stringify({
+      action:'setSettings',
+      settings:JSON.stringify(collectSettings()),
+      updated:updated,
+      token:authToken,
+    });
+    if(navigator.sendBeacon&&navigator.sendBeacon(scriptUrl,payload)){
+      setMetaSave(updated);settingsDirty=false;
+    }else{
+      fetch(scriptUrl,{
+        method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body:payload,keepalive:true,
+      }).then(()=>{setMetaSave(updated);settingsDirty=false;}).catch(()=>{});
+    }
+  }catch(_){}
 }
 async function settingsPull(){
   if(guestMode||!scriptUrl||!authToken)return;
@@ -3732,7 +3787,7 @@ async function settingsPull(){
     }else if(!d.updated){
       settingsPush(); // server ទទេ → ផ្ញើការកំណត់ឧបករណ៍នេះឡើងជាដំបូង
     }
-  }catch(_){}
+  }catch(e){syncServerOld(e);}
 }
 // រាល់ការរក្សាទុកការកំណត់ណាមួយ → ផ្ញើទៅ server ដោយឯង
 (function(){
@@ -3747,6 +3802,14 @@ async function settingsPull(){
   };
   ['saveBudgets','saveRecur','saveDebts','saveGoals','saveWallets','saveLock'].forEach(wrap);
 })();
+// បិទ/លាក់កម្មវិធី → ផ្ញើការកំណត់ភ្លាម | បើកវិញ → ទាញការកំណត់ថ្មី
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden')flushSettingsNow();
+  else if(document.visibilityState==='visible'&&!guestMode&&authToken)settingsPull();
+});
+window.addEventListener('pagehide',flushSettingsNow);
+
+let locPrefetch=null; // 📍 GPS ចាប់ជាមុនពេលបើក form
 
 // ═══════════════ 🧺 បញ្ចូលច្រើនមុខក្នុងពេលតែមួយ (batch) ═══════════════
 let batchItems=[];
@@ -3858,6 +3921,27 @@ function walletBalances(){
   });
   return map;
 }
+// ⚡ បញ្ចូលភ្លាម + ផ្ញើ server ពីក្រោយ (batch) — offline ដាក់ជួររង់ចាំ មិនបាត់ទេ
+function saveManyBackground(entries){
+  entries.forEach(e2=>transactions.unshift(e2));
+  transactions.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(guestMode||!scriptUrl){
+    saveLocal();
+    setSync('idle','ទិន្នន័យរក្សាក្នុងម៉ាស៊ីន');
+    return;
+  }
+  setSync('busy','កំពុងផ្ញើ...');
+  (async()=>{
+    let fail=0;
+    for(const e2 of entries){
+      try{await postToSheet({action:'add',transaction:e2});}
+      catch(_){queueOp({op:'add',tx:e2});fail++;}
+    }
+    cacheSave();
+    if(!fail&&!loadQueue().length)setSync('ok','បានធ្វើសមកាលកម្ម');
+  })();
+}
+
 // រក្សាទុកកំណត់ត្រាដោយផ្ទាល់ (ប្រើដោយការផ្ទេរ) — គាំទ្រ offline queue
 async function saveTxDirect(entry){
   transactions.unshift(entry);
@@ -3896,17 +3980,15 @@ document.getElementById('tfSave').addEventListener('click',async()=>{
   const cur=document.getElementById('tfCur').value;
   if(from===to)return show('កាបូបដើម និងទទួល ត្រូវខុសគ្នា');
   if(!isFinite(amt)||amt<=0)return show('សូមបញ្ចូលចំនួនត្រឹមត្រូវ');
-  const btn=document.getElementById('tfSave');
-  btn.disabled=true;btn.textContent='កំពុងផ្ទេរ...';
   const now=new Date().toISOString();
   const base=Date.now().toString(36);
-  await saveTxDirect({id:base+'-out',type:'expense',category:'ផ្ទេរប្រាក់',amount:amt,
-    note:'ផ្ទេរទៅ '+to,date:now,currency:cur,image:'',wallet:from});
-  await saveTxDirect({id:base+'-in',type:'income',category:'ផ្ទេរប្រាក់',amount:amt,
-    note:'ផ្ទេរពី '+from,date:now,currency:cur,image:'',wallet:to});
-  btn.disabled=false;btn.textContent='ផ្ទេរ';
   document.getElementById('transferOverlay').classList.remove('open');
-  setSync('ok','បានផ្ទេរ');
+  saveManyBackground([
+    {id:base+'-out',type:'expense',category:'ផ្ទេរប្រាក់',amount:amt,
+     note:'ផ្ទេរទៅ '+to,date:now,currency:cur,image:'',wallet:from},
+    {id:base+'-in',type:'income',category:'ផ្ទេរប្រាក់',amount:amt,
+     note:'ផ្ទេរពី '+from,date:now,currency:cur,image:'',wallet:to},
+  ]);
   render();
   celebrateSave();
 });
