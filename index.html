@@ -607,7 +607,7 @@ if(_a)document.documentElement.dataset.accent=_a;
   /* ---------- v9: ផ្ទៃបៃតងចាស់ + រូបលុយអណ្តែត (auth screens) ---------- */
   .authwrap{background:linear-gradient(150deg,#022c22,#065f46 45%,#0d9488);}
   .splashlogo{color:#047857; animation:bob 3s ease-in-out infinite alternate;}
-  .getstarted{color:#047857;}
+  .getstarted{color:var(--ac2);}
   .authlogo{background:linear-gradient(135deg,#059669,#10b981); box-shadow:0 8px 20px rgba(16,185,129,.35);}
   .authbadge{color:#047857; background:#ecfdf5; border-color:#d1fae5;}
   .authlink{color:#059669;}
@@ -985,8 +985,14 @@ if(_a)document.documentElement.dataset.accent=_a;
   #lockScreen{background:linear-gradient(160deg,var(--ac1),var(--ac2) 55%,var(--ac2)) !important;}
   .authlogo{background:linear-gradient(135deg,var(--ac3),var(--ac4)) !important;
     box-shadow:0 8px 20px rgba(var(--acRGB),.35) !important;}
-  .savebtn:not(.income),.authbtn,.getstarted{
+  .savebtn:not(.income),.authbtn{
     background:linear-gradient(135deg,var(--ac3),var(--ac4)) !important;
+  }
+  /* ប៊ូតុង "ចាប់ផ្តើម" — ពណ៌ស អក្សរតាមពណ៌កម្មវិធី (ទំនើប ដូចគំរូ) */
+  .getstarted{
+    background:#fff !important;
+    color:var(--ac2) !important;
+    box-shadow:0 12px 30px rgba(0,0,0,.25) !important;
   }
   .fab{background:linear-gradient(135deg,var(--ac3),var(--ac4)) !important;
     box-shadow:0 10px 24px rgba(var(--acRGB),.45) !important;}
@@ -3997,10 +4003,12 @@ function applySettings(o){
     if(o.wallets&&o.wallets.length)saveWallets(o.wallets);
     const curLock=loadLock();
     if(o.lock&&o.lock.hash){
+      // មាន PIN ពី server → យកមកប្រើ (ក្រយៅដៃ credId ជាប់តាមឧបករណ៍ដដែល)
       saveLock({hash:o.lock.hash,len:o.lock.len||4,credId:curLock?(curLock.credId||''):''});
-    }else if(!o.lock&&curLock){
-      saveLock(null); // បិទសោពីឧបករណ៍ផ្សេង → បិទទីនេះដែរ
     }
+    // សំខាន់៖ បើ server គ្មាន lock (o.lock=null) → *មិន* បិទសោក្នុងឧបករណ៍នេះទេ
+    // ការពារ race៖ ឧបករណ៍ចាស់ push ស្ថានភាពមុនកំណត់ PIN → PIN ធ្លាប់បាត់ស្ងាត់ៗ
+    // ការបិទសោ ធ្វើដោយផ្ទាល់ក្នុងម៉ឺនុយ 🔒 នៃឧបករណ៍នីមួយៗ
     if(o.theme&&o.theme!==themeMode){
       themeMode=o.theme;
       localStorage.setItem(THEME_KEY,themeMode);
@@ -4071,6 +4079,10 @@ async function settingsPull(){
       applySettings(JSON.parse(d.settings));
       setMetaSave(d.updated);
       render(); // បង្ហាញការកំណត់ថ្មីភ្លាម
+      try{ // modal កំពុងបើក? → ផ្ទុកបញ្ជីថ្មីភ្លាមដែរ
+        if(document.getElementById('debtOverlay').classList.contains('open'))renderDebts();
+        if(document.getElementById('goalOverlay').classList.contains('open'))renderGoals();
+      }catch(_){}
     }else if(!d.updated){
       settingsPush(); // server ទទេ → ផ្ញើការកំណត់ឧបករណ៍នេះឡើងជាដំបូង
     }
@@ -4346,6 +4358,7 @@ function saveDebts(d){
 function openDebtModal(){
   renderDebts();
   document.getElementById('debtOverlay').classList.add('open');
+  settingsPull(); // ☁️ ទាញកំណែថ្មីបំផុតពី server — បើមាន នឹង refresh បញ្ជីដោយឯង
 }
 function renderDebts(){
   document.querySelectorAll('.dtab').forEach(b=>b.classList.toggle('on',b.dataset.dt===debtTab));
@@ -4434,6 +4447,7 @@ function saveGoals(g){
 function openGoalModal(){
   renderGoals();
   document.getElementById('goalOverlay').classList.add('open');
+  settingsPull(); // ☁️
 }
 function renderGoals(){
   const list=document.getElementById('goalList');
