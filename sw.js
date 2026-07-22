@@ -1,6 +1,6 @@
 // Service Worker — ធ្វើឱ្យកម្មវិធីដំណើរការ offline (មានប្រសិទ្ធភាពតែពេល host លើ https)
-const CACHE = 'khmer-expense-v35';
-const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
+const CACHE = 'khmer-expense-v37';
+const ASSETS = ['./', './index.html', './styles.css', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
