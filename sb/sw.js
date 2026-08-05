@@ -1,7 +1,6 @@
-// Service Worker — កំណែ Supabase (scope /sb/ ដាច់ដោយឡែកពីកម្មវិធីពិត)
-const CACHE = 'money-note-sb-v1';
-const ASSETS = ['./', './index.html', './styles.css', './manifest.json',
-                '../icon-192.png', '../icon-512.png'];
+// Service Worker — ធ្វើឱ្យកម្មវិធីដំណើរការ offline (មានប្រសិទ្ធភាពតែពេល host លើ https)
+const CACHE = 'khmer-expense-v39';
+const ASSETS = ['./', './index.html', './styles.css', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
@@ -15,8 +14,8 @@ self.addEventListener('activate', e => {
 });
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
-  // សំណើទៅ Supabase — កុំ cache (ត្រូវការទិន្នន័យថ្មីជានិច្ច)
-  if (e.request.url.includes('.supabase.co')) return;
+  const url = new URL(e.request.url);
+  if (url.origin !== location.origin) return; // Apps Script / អត្រាប្តូរប្រាក់ → network ផ្ទាល់
   e.respondWith(
     caches.match(e.request, { ignoreSearch: true }).then(r =>
       r || fetch(e.request).then(res => {

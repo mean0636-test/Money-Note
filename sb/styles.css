@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Battambang:wght@700;900&family=Noto+Sans+Khmer:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
 /* ═══════════════════════════════════════════════
    Money Note — សៀវភៅចំណូល-ចំណាយ · styles.css
    CSS ទាំងអស់របស់កម្មវិធី (បំបែកចេញពី index.html)
@@ -1426,3 +1427,221 @@ html[data-theme="dark"] .goalbtns .gedit{background:rgba(245,158,11,.22); color:
   display:flex; align-items:center; justify-content:center;
   box-shadow:0 2px 8px rgba(0,0,0,.3);
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   v38 · ជំហានទី ២ នៃផែនការរចនា — ប្រព័ន្ធ token ថ្មី
+   ឈ្មោះ class ទាំងអស់នៅដដែល · JavaScript មិនប៉ះ
+    រចនាសម្ព័ន្ធ html[data-theme] + html[data-accent] រក្សាទាំងស្រុង
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── ក) ពណ៌៖ ឈ្មោះតាមអត្ថន័យ មិនមែនតាមពណ៌ ─────────────────────────
+   ចំណូល/ចំណាយមានពណ៌រៀងខ្លួន មិនប្តូរតាម accent ទាំង ៧ ជុំ
+   ដូច្នេះអត្ថន័យហិរញ្ញវត្ថុនៅថេរ ទោះអ្នកប្រើប្តូរពណ៌កម្មវិធីក៏ដោយ */
+:root{
+  --canvas:#FAF9F6;      /* ផ្ទៃក្រោយ — អព្យាក្រឹតកក់ក្តៅ (សៀវភៅ មិនមែន terminal) */
+  --surface:#FFFFFF;     /* ផ្ទៃកាត */
+  --ink:#14181C;         /* អក្សរចម្បង · 17.6:1 */
+  --muted:#5C6670;       /* អក្សររង · 5.8:1 */
+  --line:#E8E5DF;        /* បន្ទាត់ */
+  --income:#0F7A5A;      /* ចំណូល · 5.3:1 */
+  --expense:#BC3B2F;     /* ចំណាយ · 5.5:1 */
+  --warn:#B87514;        /* ព្រមាន — ប្រើជាផ្ទៃតែប៉ុណ្ណោះ (3.7:1) */
+  --warn-ink:#94550A;    /* ព្រមាន — សម្រាប់អក្សរ · 6.1:1 */
+  --brand:#14514A;       /* ដើមកម្មវិធី · 9.2:1 */
+
+  /* ឈ្មោះចាស់ — ភ្ជាប់ទៅ token ថ្មី ដើម្បីកុំឱ្យខូចកូដដែលមានស្រាប់ */
+  --bg:var(--surface); --bg2:var(--canvas);
+  --blue:var(--income); --red:var(--expense);
+  --primary:var(--ac3); --balance:var(--ac1); --navy:var(--brand);
+
+  /* ── គ) ចន្លោះ · មូលដ្ឋាន ៤px · គ្មានករណីលើកលែង ── */
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px;
+  --space-6:24px; --space-8:32px; --space-10:40px;
+  --r-sm:8px; --r-md:12px; --r-lg:18px; --r-xl:26px;
+
+  /* ── ឃ) ស្រមោល ៣ កម្រិត (ជំនួស ១០ ច្បាប់ដដែលៗ) ── */
+  --elev-1:0 1px 2px rgba(20,24,28,.05);
+  --elev-2:0 4px 14px -4px rgba(20,24,28,.12);
+  --elev-3:0 18px 44px -12px rgba(20,24,28,.22);
+
+  /* ── ខ) អក្សរ ── */
+  --font-head:'Battambang','Noto Sans Khmer',sans-serif;
+  --font-body:'Noto Sans Khmer',sans-serif;
+  --font-num:'IBM Plex Mono','Noto Sans Khmer',monospace;
+}
+
+html[data-theme="dark"]{
+  --canvas:#0E1214; --surface:#161B1E; --ink:#E7EAEA; --muted:#93A0A6;
+  --line:#232A2E;
+  --income:#34C79A; --expense:#F0776B; --warn:#E0A63C; --warn-ink:#E0A63C;
+  --brand:#7FD8C6;
+  --elev-1:0 1px 2px rgba(0,0,0,.35);
+  --elev-2:0 4px 14px -4px rgba(0,0,0,.45);
+  --elev-3:0 18px 44px -12px rgba(0,0,0,.6);
+}
+
+/* ── accent ៧ ជុំ · chroma កំណត់អតិបរមា ដើម្បីកុំបាត់ការអានច្បាស់ ──
+   ac1 = ងងឹត (ក្បាល · gradient ដើម) · ac3 = ភ្លឺ (ធាតុអន្តរកម្ម)
+   ac2/ac4 រក្សាទុកសម្រាប់កូដចាស់ តែឥឡូវជាជំហានរវាង ac1↔ac3 */
+:root{--ac1:#14514A; --ac2:#12695C; --ac3:#0F7A5A; --ac4:#2E9C79; --acRGB:15,122,90;}
+html[data-accent="blue"]{--ac1:#12384F; --ac2:#155A7A; --ac3:#1A6E96; --ac4:#3D93B8; --acRGB:26,110,150;}
+html[data-accent="purple"]{--ac1:#2F2450; --ac2:#4A3A7A; --ac3:#5C4899; --ac4:#8271BC; --acRGB:92,72,153;}
+html[data-accent="rose"]{--ac1:#4A1B2B; --ac2:#8C2F45; --ac3:#A83A52; --ac4:#C9697D; --acRGB:168,58,82;}
+html[data-accent="amber"]{--ac1:#432911; --ac2:#8A551A; --ac3:#A66A1E; --ac4:#C99347; --acRGB:166,106,30;}
+html[data-accent="sky"]{--ac1:#1E2547; --ac2:#3A4A85; --ac3:#465AA0; --ac4:#7385C0; --acRGB:70,90,160;}
+html[data-accent="slate"]{--ac1:#1E252A; --ac2:#3D4A52; --ac3:#4E5D66; --ac4:#7E8C95; --acRGB:78,93,102;}
+html[data-theme="dark"]{--ac3:#34C79A; --ac4:#5FD9B4; --acRGB:52,199,154;}
+html[data-theme="dark"][data-accent="blue"]{--ac3:#4FB3DC; --ac4:#7FCCEA; --acRGB:79,179,220;}
+html[data-theme="dark"][data-accent="purple"]{--ac3:#A28CE8; --ac4:#BFAEF2; --acRGB:162,140,232;}
+html[data-theme="dark"][data-accent="rose"]{--ac3:#E8829A; --ac4:#F2A7B8; --acRGB:232,130,154;}
+html[data-theme="dark"][data-accent="amber"]{--ac3:#E0A63C; --ac4:#EDC172; --acRGB:224,166,60;}
+html[data-theme="dark"][data-accent="sky"]{--ac3:#7C93DE; --ac4:#A3B4EC; --acRGB:124,147,222;}
+html[data-theme="dark"][data-accent="slate"]{--ac3:#93A3AD; --ac4:#B4C0C7; --acRGB:147,163,173;}
+
+/* ── ខ) មាត្រដ្ឋានអក្សរ · line-height ខ្មែរ ≥1.75 (កុំកាត់ជើងអក្សរ) ── */
+body{font-family:var(--font-body); font-size:15px; line-height:1.8; background:var(--canvas);}
+.monthtitle,.sheet h3,.pwcard h3,.authcard h2,.trendtitle,.sethead{
+  font-family:var(--font-head); font-weight:700;
+}
+.monthtitle{font-size:22px; font-weight:900; line-height:1.6;}
+.sheet h3,.pwcard h3{font-size:18px; line-height:1.7;}
+.sethead{font-size:12px; line-height:1.75; letter-spacing:.6px;}
+.txnote{font-size:15px; line-height:1.8;}
+.txsub,.daydate,.setrow .r{font-size:13px; font-weight:600; line-height:1.75;}
+.syncdot{margin-bottom:1px;}
+
+/* លេខទឹកប្រាក់ — mono tabular ដូច្នេះលេខតម្រង់ជួរបញ្ឈរក្នុងបញ្ជី */
+.txamt,.sumcol .val,.statsum b,.totalcard b,.dayamt,.mrow .mvals div,
+.wbrow b,.budtop span:last-child,.qcval,.stval,.calcell .amt{
+  font-family:var(--font-num); font-variant-numeric:tabular-nums;
+  font-feature-settings:'tnum' 1; letter-spacing:-.2px;
+}
+.txamt{font-size:15px; font-weight:600;}
+.txamt.income{color:var(--income);}
+.txamt.expense{color:var(--expense);}
+
+/* ── ង) Signature ១ ៖ កាតសមតុល្យផ្ទៃថ្លា ─────────────────────────
+   glass តែ ២ កន្លែង (កាតសមតុល្យ · របារក្រោម) — ធាតុដែលមិនអូស
+   ព្រោះ backdrop-filter ថ្លៃលើ GPU ធ្វើឱ្យការអូសបញ្ជីខ្វិន */
+.summary{
+  margin:var(--space-3) var(--space-4) var(--space-1);
+  padding:var(--space-4) var(--space-2);
+  border-radius:var(--r-xl);
+  background:linear-gradient(150deg,var(--ac1),var(--ac3));
+  color:#fff; box-shadow:var(--elev-2); border:none;
+  position:relative; overflow:hidden;
+}
+.summary::after{
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.10),transparent 60%);
+  pointer-events:none;
+}
+.summary .sumcol .lbl{color:rgba(255,255,255,.72);}
+.summary .sumcol .val{color:#fff;}
+.summary .sumcol:nth-child(1) .val{color:#BFF3DE;}
+.summary .sumcol:nth-child(2) .val{color:#FFC9C1;}
+.summary .sumcol:nth-child(3) .val{color:#fff;}
+html[data-theme="dark"] .summary{
+  background:linear-gradient(150deg,#12312C,#164A3E);
+}
+
+.bottomnav{
+  background:color-mix(in srgb,var(--surface) 86%,transparent);
+  backdrop-filter:blur(18px) saturate(1.4);
+  -webkit-backdrop-filter:blur(18px) saturate(1.4);
+  border-top:1px solid var(--line); box-shadow:var(--elev-1);
+}
+@supports not (backdrop-filter:blur(1px)){
+  .bottomnav{background:color-mix(in srgb,var(--surface) 92%,transparent);}
+}
+
+/* ── ឃ) កាតទាំងអស់ · ចន្លោះស្មើគ្នាគ្រប់កន្លែង ──
+   ក្នុងកាត 16 · រវាងកាត 12 · រវាងក្រុម 24 */
+.daycard,.totalcard,.trendcard,.piecard,.strow2{
+  margin:var(--space-3) var(--space-4);
+  border-radius:var(--r-lg);
+  background:var(--surface); box-shadow:var(--elev-1); border:none;
+}
+.statsum,.mrow,.setrow{
+  margin:0 var(--space-4) var(--space-2);
+  border-radius:var(--r-md);
+  background:var(--surface); box-shadow:var(--elev-1); border:none;
+}
+.trendcard,.piecard{padding:var(--space-4);}
+.totalcard{padding:var(--space-2) var(--space-4);}
+.sheet,.authcard,.pwcard{box-shadow:var(--elev-3);}
+.sethead{margin:var(--space-6) var(--space-4) var(--space-2); color:var(--muted);}
+.sethead:first-of-type{margin-top:var(--space-4);}
+
+/* ── ង) Signature ២ ៖ ចលនាហើរចូលពេលរក្សាទុក ──────────────────────
+   240ms · cubic-bezier(.16,1,.3,1) — បញ្ជាក់ថា «បានរក្សាទុកហើយ»
+   ដោយមិនត្រូវការ toast ។ អ្នកប្រើកត់ត្រា ១០-២០ ដង/ថ្ងៃ */
+@keyframes flyIn{
+  0%{opacity:0; transform:translateY(18px) scale(.97);}
+  100%{opacity:1; transform:none;}
+}
+.anim{animation:flyIn .24s cubic-bezier(.16,1,.3,1) both;}
+.daycard .txrow:first-child{animation:flyIn .24s cubic-bezier(.16,1,.3,1) both;}
+
+/* ── ធាតុអន្តរកម្ម — យកពី accent ── */
+.topbar{background:linear-gradient(135deg,var(--ac1),var(--ac3)) !important;}
+.fab{
+  background:var(--ac3) !important;
+  box-shadow:0 8px 24px -6px rgba(var(--acRGB),.55) !important;
+}
+.savebtn:not(.income),.authbtn,.sharebtn{
+  background:var(--ac3) !important; box-shadow:var(--elev-2) !important;
+}
+.savebtn.income{background:var(--income) !important; box-shadow:var(--elev-2) !important;}
+.getstarted{background:var(--surface) !important; color:var(--ac1) !important;}
+.daybadge,.calcell.today .d,#stKhr.on,#stUsd.on{background:var(--ac3) !important;}
+.navbtn.active,.navbtn.active .ic{color:var(--ac3) !important;}
+.navbtn.active::before{background:var(--ac3);}
+.typetab.on.income{border-color:var(--income); box-shadow:var(--elev-1);}
+.typetab.on.expense{border-color:var(--expense); box-shadow:var(--elev-1);}
+
+/* ── ព្រមាន — ផ្ទៃ vs អក្សរ ដាច់ដោយឡែក (មើលការដោះដូរក្នុងផែនការ) ── */
+.debtbanner{
+  background:color-mix(in srgb,var(--warn) 14%,transparent);
+  border:1px solid color-mix(in srgb,var(--warn) 40%,transparent);
+  color:var(--warn-ink); border-radius:var(--r-md);
+  margin:var(--space-3) var(--space-4) 0; padding:var(--space-3) var(--space-4);
+  box-shadow:none;
+}
+.debtbanner.over{
+  background:color-mix(in srgb,var(--expense) 12%,transparent);
+  border-color:color-mix(in srgb,var(--expense) 42%,transparent);
+  color:var(--expense);
+}
+
+/* ── ស៊ុមប្រភេទ · កាបូប — ស្ងាត់ជាងមុន ── */
+.cwband{
+  border:1.5px solid color-mix(in srgb,var(--ac3) 45%,transparent) !important;
+  background:color-mix(in srgb,var(--ac3) 7%,transparent) !important;
+  border-radius:var(--r-lg); box-shadow:none;
+}
+#chips .cattile.selected .catname{color:var(--ac3); font-weight:700;}
+.wpill.on{background:var(--ac3) !important; border-color:transparent !important;}
+
+/* ── គុណភាពមូលដ្ឋាន ── */
+:focus-visible{outline:2px solid var(--ac3); outline-offset:2px;}
+::selection{background:color-mix(in srgb,var(--ac3) 25%,transparent);}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important; transition-duration:.01ms !important;}
+}
+
+/* ── v39 · ជំហានទី ៣ ៖ រូបតំណាង SVG ជំនួស emoji ──────────────────
+   stroke 1.75 · currentColor · មួយរូបប្រើទាំង light និង dark */
+.cic,.navbtn .ic svg{display:inline-block; vertical-align:-.18em; flex-shrink:0;}
+.txicon{
+  display:flex; align-items:center; justify-content:center;
+  color:var(--ink); background:color-mix(in srgb,var(--ink) 6%,transparent);
+  border-radius:var(--r-md);
+}
+html[data-theme="dark"] .txicon{background:color-mix(in srgb,#fff 8%,transparent);}
+#chips .cattile .catbox{color:#fff;}
+#chips .cattile .catbox .cic{width:24px; height:24px;}
+.stcat,.recuritem .rmain,.budtop span:first-child{display:inline-flex; align-items:center; gap:var(--space-2);}
+.navbtn .ic{display:flex; align-items:center; justify-content:center; height:23px;}
+.navbtn.active .ic svg{stroke-width:2.1;}

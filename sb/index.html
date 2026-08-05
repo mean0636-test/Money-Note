@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<link rel="manifest" href="./manifest.json">
+<link rel="manifest" href="manifest.json" />
 <link rel="apple-touch-icon" href="icon-192.png" />
 <link rel="icon" type="image/png" href="icon-192.png" />
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -19,19 +19,65 @@ if(_t==='dark'||(_t==='auto'&&window.matchMedia&&matchMedia('(prefers-color-sche
 var _a=localStorage.getItem('khmer-expense-accent');
 if(_a)document.documentElement.dataset.accent=_a;
 }catch(e){}</script>
-<title>[Supabase] សៀវភៅចំណូល-ចំណាយ</title>
+<title>សៀវភៅចំណូល-ចំណាយ</title>
 <link rel="icon" href="data:,">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Khmer:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+<!-- 🎨 SVG sprite (ជំហាន ៣) — icon ទាំងអស់ក្នុងឯកសារ ដូច្នេះ offline ដំណើរការ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-food" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3v7a3 3 0 0 0 3 3v8M7 3v6M10 3v6M17 3c-1.5 2-2 4-2 7h4c0-3-.5-5-2-7ZM17 10v11"/></symbol>
+<symbol id="i-drink" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12l-1.5 6.5A5 5 0 0 1 12 14a5 5 0 0 1-4.5-3.5ZM12 14v6M8 21h8"/></symbol>
+<symbol id="i-home-goods" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h16l-1 12H5ZM9 8V6a3 3 0 0 1 6 0v2"/></symbol>
+<symbol id="i-clothes" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 5 6l2 3v12h10V9l2-3-3-3-2 2h-4Z"/></symbol>
+<symbol id="i-transport" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M5 12V7h14v5M6 20v-2M18 20v-2M4 18h16v-6H4Z"/><circle cx="8" cy="15.5" r="1"/><circle cx="16" cy="15.5" r="1"/></symbol>
+<symbol id="i-fuel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V5a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v16M4 21h11M6 10h7M17 8l2 2v8a1.5 1.5 0 0 0 3 0v-9l-2-3"/></symbol>
+<symbol id="i-moto-fix" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4 9 15M4 20a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM20 20a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM7 17h8l-3-6M11 4h4"/></symbol>
+<symbol id="i-car-fix" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m14 6 3 3-2 2-3-3ZM12 8l-6 6-2 4 4-2 6-6M17 15h4M19 13v4"/></symbol>
+<symbol id="i-moto-part" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6 7.7 7.7M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></symbol>
+<symbol id="i-car-part" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M5 17v-4l2-5h10l2 5v4M5 17v2M19 17v2"/><circle cx="8" cy="13" r="1"/><circle cx="16" cy="13" r="1"/></symbol>
+<symbol id="i-house" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 4l9 7M5 10v10h14V10M10 20v-6h4v6"/></symbol>
+<symbol id="i-utility" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 6 12h5l-1 9 7-10h-5Z"/></symbol>
+<symbol id="i-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></symbol>
+<symbol id="i-internet" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 3 2.5 15 0 18M12 3c-2.5 3-2.5 15 0 18"/></symbol>
+<symbol id="i-laptop" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="11" rx="1"/><path d="M2 19h20"/></symbol>
+<symbol id="i-desktop" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="1"/><path d="M9 20h6M12 16v4"/></symbol>
+<symbol id="i-health" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.5-7-9.5A4 4 0 0 1 12 8a4 4 0 0 1 7 2.5C19 15.5 12 20 12 20Z"/></symbol>
+<symbol id="i-beauty" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a4 4 0 0 0-4 4v3h8V7a4 4 0 0 0-4-4ZM8 10v9a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-9"/></symbol>
+<symbol id="i-study" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l9-4 9 4-9 4Z"/><path d="M7 10v5c0 1.5 2.2 3 5 3s5-1.5 5-3v-5M21 8v6"/></symbol>
+<symbol id="i-fun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3v-2a3 3 0 0 1 3-3Z"/><path d="M7 10v4M5 12h4"/><circle cx="16" cy="11.5" r=".6"/><circle cx="18" cy="13.5" r=".6"/></symbol>
+<symbol id="i-travel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m2 14 3-1 6 2 4-9 2 .5-1.5 9.5 4-1 1 2-16 5Z"/><path d="M4 21h16"/></symbol>
+<symbol id="i-child" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="3"/><path d="M6 21v-4a6 6 0 0 1 12 0v4M9 21v-3M15 21v-3"/></symbol>
+<symbol id="i-pet" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="8" r="2"/><circle cx="12" cy="6" r="2"/><circle cx="17" cy="8" r="2"/><path d="M12 11c-3 0-5 2.5-5 5a3 3 0 0 0 3 3h4a3 3 0 0 0 3-3c0-2.5-2-5-5-5Z"/></symbol>
+<symbol id="i-family" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="7" r="2.5"/><circle cx="16" cy="7" r="2.5"/><path d="M3 20v-3a4 4 0 0 1 4-4h2M13 20v-3a4 4 0 0 1 4-4h1a3 3 0 0 1 3 3v4"/></symbol>
+<symbol id="i-sport" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3c3 3 3 15 0 18M3.5 9h17M3.5 15h17"/></symbol>
+<symbol id="i-insurance" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v6c0 4 3 7.5 7 9 4-1.5 7-5 7-9V6Z"/><path d="m9 12 2 2 4-4"/></symbol>
+<symbol id="i-tax" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2Z"/><path d="M9 8h6M9 12h6M9 16h3"/></symbol>
+<symbol id="i-donate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.5-7-9.5A4 4 0 0 1 12 8a4 4 0 0 1 7 2.5C19 15.5 12 20 12 20Z"/><path d="M12 11v4M10 13h4"/></symbol>
+<symbol id="i-debt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8M12 4v4M6 8h12l1 12H5Z"/><path d="M12 12v5M10.5 13.5h3M10.5 15.5h3"/></symbol>
+<symbol id="i-other" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 11h18M9 7V5a3 3 0 0 1 6 0v2"/></symbol>
+<symbol id="i-salary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 12h.01M18 12h.01"/></symbol>
+<symbol id="i-sell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-1.5 9H6ZM8 8V6a4 4 0 0 1 8 0v2"/><path d="m18 5 3 3-3 3"/></symbol>
+<symbol id="i-business" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M9 8V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/></symbol>
+<symbol id="i-invest" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16M6 16l4-5 3 3 5-7"/><path d="M18 7h-3M18 7v3"/></symbol>
+<symbol id="i-gift" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="11" rx="1"/><path d="M3 13h18M12 9v11M12 9C10 9 8 8 8 6.5S9.5 4 12 9ZM12 9c2 0 4-1 4-2.5S14.5 4 12 9Z"/></symbol>
+<symbol id="i-interest" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 9h.01M15 15h.01M15 9l-6 6"/></symbol>
+<symbol id="i-aid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-4-2-7-5.5-7-9.5A4 4 0 0 1 12 9a4 4 0 0 1 7 2.5c0 4-3 7.5-7 9.5Z"/><path d="M8 5.5 12 3l4 2.5"/></symbol>
+<symbol id="i-transfer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h14l-3-3M20 16H6l3 3"/></symbol>
+<symbol id="i-tag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m3 12 9-9 9 9-9 9Z"/><circle cx="12" cy="8.5" r="1.2"/></symbol>
+<symbol id="i-nav-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h12a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2Z"/><path d="M5 18h14M9 8h6"/></symbol>
+<symbol id="i-nav-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16M8 20v-7M12 20V6M16 20v-10"/></symbol>
+<symbol id="i-nav-wallet" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 14h2"/></symbol>
+<symbol id="i-nav-more" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></symbol>
+</defs></svg>
+
 <div class="app">
 
   <div class="setup" id="setupScreen" style="display:none">
-    <h1>ភ្ជាប់ជាមួយ Supabase</h1>
-    <p>បញ្ចូល <b>Project URL</b> និង <b>anon public key</b> (Supabase → Settings → API)។</p>
-    <input id="scriptUrlInput" type="url" placeholder="https://xxxxx.supabase.co" />
-    <input id="anonKeyInput" type="text" placeholder="anon public key (eyJhbGci...)" style="margin-top:10px" />
+    <h1>ភ្ជាប់ជាមួយ Google Sheets</h1>
+    <p>សូមបញ្ចូល URL របស់ Google Apps Script Web App (បញ្ចប់ដោយ <b>/exec</b>)។</p>
+    <input id="scriptUrlInput" type="url" placeholder="https://script.google.com/macros/s/XXXX/exec" />
     <p class="errmsg" id="setupErr" style="display:none"></p>
     <button id="connectBtn">ភ្ជាប់</button>
   </div>
@@ -223,15 +269,13 @@ if(_a)document.documentElement.dataset.accent=_a;
   <!-- ភ្ជាប់ / ប្តូរ URL Google Sheets -->
   <div class="pwoverlay" id="urlOverlay">
     <div class="authcard pwcard">
-      <h3>⚡ ភ្ជាប់ Supabase</h3>
+      <h3>🔗 ភ្ជាប់ Google Sheets</h3>
       <p style="font-size:12.5px;color:var(--muted);line-height:1.7;margin:0 0 6px;">
-        Supabase → Settings → API៖ ចម្លង <b>Project URL</b> និង <b>anon public</b> key។
-        (anon key សុវត្ថិភាព — RLS ការពារទិន្នន័យ)
+        បញ្ចូល URL របស់ Google Apps Script Web App (បញ្ចប់ដោយ <b>/exec</b>)។
+        ក្រោយភ្ជាប់ អ្នកនឹងត្រូវចុះឈ្មោះ ឬចូលគណនី។
       </p>
       <div class="inputwrap"><span class="inputicon">🔗</span>
-        <input class="authinput" id="urlInput" type="url" placeholder="https://xxxxx.supabase.co"></div>
-      <div class="inputwrap" style="margin-top:8px"><span class="inputicon">🔑</span>
-        <input class="authinput" id="anonInput" type="text" placeholder="anon public key (eyJhbGci...)"></div>
+        <input class="authinput" id="urlInput" type="url" placeholder="https://script.google.com/macros/s/XXXX/exec"></div>
       <p class="errmsg" id="urlErr" style="display:none"></p>
       <div class="pwbtns">
         <button class="pwcancel" id="urlCancel">បោះបង់</button>
@@ -305,10 +349,10 @@ if(_a)document.documentElement.dataset.accent=_a;
 
     <div class="bottomnav">
       <div class="inner">
-        <button class="navbtn active" data-nav="trans"><span class="ic">📒</span>ប្រតិបត្តិការ</button>
-        <button class="navbtn" data-nav="stats"><span class="ic">📊</span>ស្ថិតិ</button>
-        <button class="navbtn" data-nav="accounts"><span class="ic">💳</span>គណនី</button>
-        <button class="navbtn" data-nav="more"><span class="ic">⋯</span>ផ្សេងៗ</button>
+        <button class="navbtn active" data-nav="trans"><span class="ic"><svg width="23" height="23" aria-hidden="true"><use href="#i-nav-book"></use></svg></span>ប្រតិបត្តិការ</button>
+        <button class="navbtn" data-nav="stats"><span class="ic"><svg width="23" height="23" aria-hidden="true"><use href="#i-nav-chart"></use></svg></span>ស្ថិតិ</button>
+        <button class="navbtn" data-nav="accounts"><span class="ic"><svg width="23" height="23" aria-hidden="true"><use href="#i-nav-wallet"></use></svg></span>គណនី</button>
+        <button class="navbtn" data-nav="more"><span class="ic"><svg width="23" height="23" aria-hidden="true"><use href="#i-nav-more"></use></svg></span>ផ្សេងៗ</button>
       </div>
     </div>
   </div>
@@ -619,7 +663,7 @@ window.addEventListener('orientationchange',setVh);
 if(window.visualViewport){window.visualViewport.addEventListener('resize',setVh);}
 
 // ═══ Google Login ═══ Client ID របស់អ្នក (បានដាក់រួចរាល់)
-const GOOGLE_CLIENT_ID='264579572245-4240gmk3r1u55ufmaaqagethk5mfs9tc.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID='954850898278-93d2sct0nrk6kdh0bj3g64hm6lcq5dl7.apps.googleusercontent.com';
 
 const URL_KEY='khmer-expense-script-url';
 const CACHE_KEY='khmer-expense-cache-v3';
@@ -634,20 +678,19 @@ const CATEGORY_ICONS={
   'កម្សាន្ត':'🎬','ដំណើរកម្សាន្ត':'✈️','កូន':'👶','សត្វចិញ្ចឹម':'🐾','បរិច្ចាគ':'🙏','បំណុល':'💳',
   'ផ្សេងៗ':'📦',
 };
+// 🎨 ប្រភេទ → រូបតំណាង SVG (ជំហាន ៣ — ជំនួស emoji)
+// បន្ថែមប្រភេទថ្មី = បន្ថែម <symbol id="i-xxx"> មួយ + ១ បន្ទាត់ក្នុងតារាងនេះ
+const CAT_ICON={"អាហារ":"food","ភេសជ្ជៈ":"drink","ទំនិញផ្ទះ":"home-goods","សម្លៀកបំពាក់":"clothes","ដឹកជញ្ជូន":"transport","សាំង":"fuel","ជួសជុលម៉ូតូ":"moto-fix","ជួសជុលឡាន":"car-fix","គ្រឿងបន្លាស់ម៉ូតូ":"moto-part","គ្រឿងបន្លាស់ឡាន":"car-part","ផ្ទះ":"house","ភ្លើង-ទឹក":"utility","ទូរសព្ទ":"phone","ទូរសព្ទ-Net":"phone","អ៊ីនធឺណិត":"internet","Laptop":"laptop","MacBook":"desktop","សុខភាព":"health","សម្ផស្ស":"beauty","ការសិក្សា":"study","កម្សាន្ត":"fun","ដំណើរកម្សាន្ត":"travel","កូន":"child","សត្វចិញ្ចឹម":"pet","ផ្គត់ផ្គង់គ្រួសារ":"family","សម្ភារៈកីឡា":"sport","ធានារ៉ាប់រង":"insurance","ពន្ធ":"tax","បរិច្ចាគ":"donate","បំណុល":"debt","ផ្សេងៗ":"other","ប្រាក់ខែ":"salary","លក់ដូរ":"sell","អាជីវកម្ម":"business","ការវិនិយោគ":"invest","អំណោយ":"gift","ការប្រាក់":"interest","ជំនួយ":"aid","ផ្ទេរប្រាក់":"transfer"};
+// ic(cat,size)៖ ត្រឡប់ markup រូបតំណាង — currentColor ដូច្នេះមួយរូបប្រើទាំង light/dark
+function ic(cat,size){
+  const id=CAT_ICON[cat]||'tag'; // បើគ្មាន → ធ្លាក់ទៅ #i-tag
+  const n=size||22;
+  return '<svg class="cic" width="'+n+'" height="'+n+'" aria-hidden="true"><use href="#i-'+id+'"></use></svg>';
+}
 const INCOME_CATEGORIES=['ប្រាក់ខែ','លក់ដូរ','អាជីវកម្ម','ការវិនិយោគ','អំណោយ','ការប្រាក់','ជំនួយ','ផ្សេងៗ'];
 const EXPENSE_CATEGORIES=['អាហារ','ភេសជ្ជៈ','ទំនិញផ្ទះ','សម្លៀកបំពាក់','ដឹកជញ្ជូន','សាំង','ជួសជុលម៉ូតូ','ជួសជុលឡាន','គ្រឿងបន្លាស់ម៉ូតូ','គ្រឿងបន្លាស់ឡាន','ផ្ទះ','ភ្លើង-ទឹក','ទូរសព្ទ','អ៊ីនធឺណិត','Laptop','MacBook','សុខភាព','សម្ផស្ស','ការសិក្សា','កម្សាន្ត','ដំណើរកម្សាន្ត','កូន','សត្វចិញ្ចឹម','ផ្គត់ផ្គង់គ្រួសារ','សម្ភារៈកីឡា','ធានារ៉ាប់រង','ពន្ធ','បរិច្ចាគ','បំណុល','ផ្សេងៗ'];
 
-let scriptUrl=(localStorage.getItem(URL_KEY)||'').replace(/\/+$/,''); // Supabase Project URL
-const ANON_KEY='khmer-expense-anon';
-const SBREF_KEY='khmer-expense-sbrefresh';
-const DEVID_KEY='khmer-expense-devid';
-let anonKey=localStorage.getItem(ANON_KEY)||'';
-let sbRefresh=localStorage.getItem(SBREF_KEY)||'';
-function deviceId(){
-  let d=localStorage.getItem(DEVID_KEY);
-  if(!d){d=(Date.now().toString(36)+Math.random().toString(36).slice(2,10));localStorage.setItem(DEVID_KEY,d);}
-  return d;
-}
+let scriptUrl=localStorage.getItem(URL_KEY)||'';
 let authToken=''; // token រក្សាតែក្នុង memory — ត្រូវចុច "ចូល" រាល់ពេលបើក
 let currentUser='';
 let guestMode=false; // ប្រើដោយមិនទាន់ភ្ជាប់/ចូលគណនី — ទិន្នន័យក្នុងម៉ាស៊ីន
@@ -728,15 +771,18 @@ async function fetchAll(){
   setSync('busy','កំពុងទាញយក...');
   if(!transactions.length)renderSkeleton(); // ក្រឡាភ្លឹបភ្លែត ខណៈទាញលើកដំបូង
   try{
-    const list=await sbFetchTx();
-    transactions=list.sort((a,b)=>new Date(b.date)-new Date(a.date));
-    sbRegisterDevice(); // ធ្វើបច្ចុប្បន្នភាព "ប្រើចុងក្រោយ"
+    const res=await fetch(scriptUrl+'?token='+encodeURIComponent(authToken));
+    const data=await res.json();
+    if(!data.ok){
+      if(data.error==='unauthorized'){forceLogout();return;}
+      throw new Error(data.error||'error');
+    }
+    transactions=data.transactions.sort((a,b)=>new Date(b.date)-new Date(a.date));
     cacheSave();
     setSync('ok','បានធ្វើសមកាលកម្ម');
     settingsPull(); // ☁️ ទាញការកំណត់រួម (ថវិកា បំណុល PIN...) ពីគណនី
     applyRecurring(); // បញ្ចូលប្រតិបត្តិការដដែលៗរបស់ខែនេះ (បើដល់ថ្ងៃ)
   }catch(e){
-    if(String(e.message)==='unauthorized'){forceLogout();return;}
     cacheLoad();
     setSync('err','មិនអាចភ្ជាប់បានទេ');
   }
@@ -773,188 +819,14 @@ function saveLocal(){
 }
 // postToSheet(payload): ផ្ញើសំណើ (POST) ទៅ Google Apps Script URL ដើម្បី add/update/delete/login ។ល។
 // រួមភ្ជាប់ token ស្វ័យប្រវត្តិ, បោះ error បើ server ឆ្លើយថាមិនជោគជ័យ
-// ═══════════════ ⚡ ស្រទាប់ Supabase (ជំនួស Apps Script) ═══════════════
-// រក្សា API ដដែល (postToSheet) ដើម្បីកុំឱ្យប៉ះកូដមុខងារឯទៀត
-function sbHeaders(auth){
-  const h={'Content-Type':'application/json','apikey':anonKey};
-  if(auth&&authToken)h['Authorization']='Bearer '+authToken;
-  return h;
-}
-async function sbRaw(path,opts){
-  const res=await fetch(scriptUrl+path,opts);
-  let data=null;
-  try{data=await res.json();}catch(_){}
-  return {res:res,data:data};
-}
-// ធ្វើឱ្យ token ថ្មីវិញដោយស្វ័យប្រវត្តិ (access token មានអាយុ ១ ម៉ោង)
-async function sbRefreshToken(){
-  if(!sbRefresh)return false;
-  const r=await sbRaw('/auth/v1/token?grant_type=refresh_token',{
-    method:'POST',headers:sbHeaders(false),
-    body:JSON.stringify({refresh_token:sbRefresh}),
-  });
-  if(r.res.ok&&r.data&&r.data.access_token){
-    authToken=r.data.access_token;
-    sbRefresh=r.data.refresh_token||sbRefresh;
-    localStorage.setItem(SBREF_KEY,sbRefresh);
-    saveSession(false);
-    return true;
-  }
-  return false;
-}
-// REST ទៅតារាង (transactions/settings/devices) — ព្យាយាមម្តងទៀតបើ token ផុត
-async function sbRest(path,opts,retry){
-  const o=Object.assign({},opts);
-  o.headers=Object.assign(sbHeaders(true),opts.headers||{});
-  const r=await sbRaw('/rest/v1'+path,o);
-  if(r.res.status===401&&!retry&&await sbRefreshToken())return sbRest(path,opts,true);
-  if(r.res.status===401)throw new Error('unauthorized');
-  if(!r.res.ok)throw new Error((r.data&&(r.data.message||r.data.error_description))||'error');
-  return r.data;
-}
-function txRow(t){
-  return {
-    id:String(t.id),user_email:currentUser,type:t.type,category:t.category,
-    amount:Number(t.amount),note:t.note||'',date:t.date,
-    currency:t.currency||'៛',image:t.image||'',wallet:t.wallet||'',
-  };
-}
-function rowTx(r){
-  return {
-    id:String(r.id),type:r.type,category:r.category,amount:Number(r.amount),
-    note:r.note||'',date:r.date,currency:r.currency||'៛',
-    image:r.image||'',wallet:r.wallet||'',
-  };
-}
-async function sbRegisterDevice(){
-  try{
-    await sbRest('/devices',{
-      method:'POST',
-      headers:{'Prefer':'resolution=merge-duplicates'},
-      body:JSON.stringify({
-        id:deviceId(),user_email:currentUser,
-        device:deviceName(),last_seen:new Date().toISOString(),
-      }),
-    });
-  }catch(_){}
-}
-async function sbAuthPost(path,body){
-  const r=await sbRaw(path,{method:'POST',headers:sbHeaders(false),body:JSON.stringify(body)});
-  if(!r.res.ok){
-    const m=String((r.data&&(r.data.msg||r.data.error_description||r.data.message))||'');
-    if(/invalid login|credentials/i.test(m))throw new Error('bad_login');
-    if(/already registered|already exists/i.test(m))throw new Error('exists');
-    throw new Error(m||'error');
-  }
-  return r.data;
-}
 async function postToSheet(payload){
-  const a=payload.action;
-
-  // ── គណនី ──
-  if(a==='signup'){
-    const d=await sbAuthPost('/auth/v1/signup',{email:payload.email,password:payload.password});
-    if(!d.access_token)throw new Error('confirm_email'); // បើបើក "Confirm email" ក្នុង Supabase
-    authToken=d.access_token;sbRefresh=d.refresh_token||'';
-    localStorage.setItem(SBREF_KEY,sbRefresh);
-    currentUser=(d.user&&d.user.email)||payload.email;
-    sbRegisterDevice();
-    return {ok:true,token:authToken,email:currentUser,
-      transactions:payload.withData?await sbFetchTx():undefined};
-  }
-  if(a==='login'){
-    const d=await sbAuthPost('/auth/v1/token?grant_type=password',
-      {email:payload.email,password:payload.password});
-    authToken=d.access_token;sbRefresh=d.refresh_token||'';
-    localStorage.setItem(SBREF_KEY,sbRefresh);
-    currentUser=(d.user&&d.user.email)||payload.email;
-    sbRegisterDevice();
-    return {ok:true,token:authToken,email:currentUser,
-      transactions:payload.withData?await sbFetchTx():undefined};
-  }
-  if(a==='googleLogin'){
-    const d=await sbAuthPost('/auth/v1/token?grant_type=id_token',
-      {provider:'google',id_token:payload.idToken});
-    authToken=d.access_token;sbRefresh=d.refresh_token||'';
-    localStorage.setItem(SBREF_KEY,sbRefresh);
-    currentUser=(d.user&&d.user.email)||'';
-    sbRegisterDevice();
-    return {ok:true,token:authToken,email:currentUser,
-      transactions:payload.withData?await sbFetchTx():undefined};
-  }
-  if(a==='logout'){
-    try{
-      await sbRaw('/auth/v1/logout',{method:'POST',headers:sbHeaders(true),body:'{}'});
-      await sbRest('/devices?id=eq.'+encodeURIComponent(deviceId()),{method:'DELETE'});
-    }catch(_){}
-    sbRefresh='';localStorage.removeItem(SBREF_KEY);
-    return {ok:true};
-  }
-  if(a==='changePassword'){
-    const r=await sbRaw('/auth/v1/user',{
-      method:'PUT',headers:sbHeaders(true),
-      body:JSON.stringify({password:payload.newPassword}),
-    });
-    if(!r.res.ok)throw new Error((r.data&&(r.data.msg||r.data.message))||'error');
-    return {ok:true};
-  }
-  if(a==='requestReset'){
-    await sbAuthPost('/auth/v1/recover',{email:payload.email});
-    return {ok:true,mailed:true};
-  }
-  if(a==='confirmReset')throw new Error('use_email_link');
-
-  // ── ឧបករណ៍ ──
-  if(a==='listDevices'){
-    const rows=await sbRest('/devices?select=*&order=last_seen.desc',{method:'GET'});
-    return {ok:true,devices:(rows||[]).map(r=>({
-      id:r.id,device:r.device,created:r.created_at,lastSeen:r.last_seen,
-      current:r.id===deviceId(),
-    }))};
-  }
-  if(a==='revokeDevice'){
-    await sbRest('/devices?id=eq.'+encodeURIComponent(payload.id),{method:'DELETE'});
-    return {ok:true};
-  }
-
-  // ── ការកំណត់រួម ──
-  if(a==='getSettings'){
-    const rows=await sbRest('/settings?select=*&limit=1',{method:'GET'});
-    const r=(rows||[])[0];
-    return {ok:true,settings:r?(r.json||''):'',updated:r?(r.updated||''):''};
-  }
-  if(a==='setSettings'){
-    await sbRest('/settings',{
-      method:'POST',headers:{'Prefer':'resolution=merge-duplicates'},
-      body:JSON.stringify({user_email:currentUser,json:payload.settings,updated:payload.updated}),
-    });
-    return {ok:true};
-  }
-
-  // ── ប្រតិបត្តិការ ──
-  if(a==='add'){
-    await sbRest('/transactions',{
-      method:'POST',headers:{'Prefer':'resolution=merge-duplicates'},
-      body:JSON.stringify(txRow(payload.transaction)),
-    });
-    return {ok:true};
-  }
-  if(a==='update'){
-    await sbRest('/transactions?id=eq.'+encodeURIComponent(payload.transaction.id),{
-      method:'PATCH',body:JSON.stringify(txRow(payload.transaction)),
-    });
-    return {ok:true};
-  }
-  if(a==='delete'){
-    await sbRest('/transactions?id=eq.'+encodeURIComponent(payload.id),{method:'DELETE'});
-    return {ok:true};
-  }
-  if(a==='verify')return {ok:true,email:currentUser};
-  throw new Error('Unknown action: '+a);
-}
-async function sbFetchTx(){
-  const rows=await sbRest('/transactions?select=*&order=date.desc&limit=5000',{method:'GET'});
-  return (rows||[]).map(rowTx);
+  const res=await fetch(scriptUrl,{
+    method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({...payload,token:authToken}),
+  });
+  const data=await res.json();
+  if(!data.ok) throw new Error(data.error||'error');
+  return data;
 }
 
 // ---------- Helpers (មុខងារជំនួយទូទៅ) ----------
@@ -1156,7 +1028,7 @@ function renderDaily(c){
       const row=document.createElement('div');
       row.className='txrow';
       row.innerHTML=`
-        <span class="txicon">${CATEGORY_ICONS[t.category]||'📦'}</span>
+        <span class="txicon">${ic(t.category,20)}</span>
         <div class="txcatcol"><div class="txcat">${esc(t.category)}</div></div>
         <div class="txmid">
           ${t.image?`<img class="txthumb" src="${t.image}">`:''}
@@ -1409,7 +1281,7 @@ function renderStats(c){
       row.className='strow2';
       row.innerHTML=`
         <span class="pctbadge" style="background:${d.color}">${Math.round(d.pct)}%</span>
-        <span class="stcat">${CATEGORY_ICONS[d.cat]||'📦'} ${esc(d.cat)}</span>
+        <span class="stcat">${ic(d.cat,18)} ${esc(d.cat)}</span>
         <span class="stamt">${money(d.amt)}</span>`;
       wrap.appendChild(row);
     });
@@ -1714,7 +1586,6 @@ document.getElementById('restoreInput').addEventListener('change',async e=>{
 // ---------- ភ្ជាប់ URL ----------
 // openUrlModal(): បើកប្រអប់សម្រាប់បញ្ចូល/ប្តូរ URL របស់ Google Apps Script Web App
 function openUrlModal(){
-  document.getElementById('anonInput').value=anonKey||'';
   document.getElementById('urlInput').value=scriptUrl||'';
   document.getElementById('urlErr').style.display='none';
   document.getElementById('urlOverlay').classList.add('open');
@@ -1726,19 +1597,14 @@ document.getElementById('urlOverlay').addEventListener('click',e=>{
 });
 // ចុច "ភ្ជាប់": ត្រួតពិនិត្យទម្រង់ URL, រក្សាទុកក្នុង localStorage, ហើយបញ្ជូនទៅទំព័រចូល/ចុះឈ្មោះគណនី
 document.getElementById('urlSave').addEventListener('click',()=>{
-  const url=document.getElementById('urlInput').value.trim().replace(/\/+$/,'');
-  const key=document.getElementById('anonInput').value.trim();
+  const url=document.getElementById('urlInput').value.trim();
   const err=document.getElementById('urlErr');
-  const bad=m=>{err.textContent=m;err.style.display='block';return;};
-  if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url)){
-    bad('URL មិនត្រឹមត្រូវ — ត្រូវមានទម្រង់ https://xxxxx.supabase.co');return;
+  if(!url.startsWith('https://script.google.com/')||!url.includes('/exec')){
+    err.textContent='URL មិនត្រឹមត្រូវ — ត្រូវតែបញ្ចប់ដោយ /exec';
+    err.style.display='block';return;
   }
-  if(!key.startsWith('eyJ')){
-    bad('anon key មិនត្រឹមត្រូវ — ត្រូវចាប់ផ្តើមដោយ eyJ');return;
-  }
-  scriptUrl=url;anonKey=key;
+  scriptUrl=url;
   localStorage.setItem(URL_KEY,url);
-  localStorage.setItem(ANON_KEY,key);
   authToken='';currentUser='';
   document.getElementById('urlOverlay').classList.remove('open');
   showAuth();
@@ -1830,7 +1696,7 @@ function buildChips(){
     const tile=document.createElement('button');
     tile.className='cattile';
     tile.innerHTML=`
-      <span class="catbox" style="background:${CATEGORY_COLORS[cat]||'#9aa2af'}">${CATEGORY_ICONS[cat]||'📦'}</span>
+      <span class="catbox" style="background:${CATEGORY_COLORS[cat]||'#9aa2af'}">${ic(cat,24)}</span>
       <span class="catname">${cat}</span>`;
     tile.addEventListener('click',()=>cwScrollTo(i,true));
     chips.appendChild(tile);
@@ -2102,17 +1968,14 @@ document.getElementById('deleteBtn').addEventListener('click',async()=>{
 // ---------- Setup (ទំព័រភ្ជាប់ Google Sheets ដំបូង) ----------
 // ចុច "ភ្ជាប់" ក្នុងទំព័រ Setup ដំបូង៖ ត្រួតពិនិត្យ URL រួចចាប់ផ្តើមកម្មវិធី (startApp)
 document.getElementById('connectBtn').addEventListener('click',()=>{
-  const url=document.getElementById('scriptUrlInput').value.trim().replace(/\/+$/,'');
-  const key=document.getElementById('anonKeyInput').value.trim();
+  const url=document.getElementById('scriptUrlInput').value.trim();
   const err=document.getElementById('setupErr');
-  const bad=m=>{err.textContent=m;err.style.display='block';};
-  if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url))
-    return bad('URL មិនត្រឹមត្រូវ — ត្រូវមានទម្រង់ https://xxxxx.supabase.co');
-  if(!key.startsWith('eyJ'))
-    return bad('anon key មិនត្រឹមត្រូវ — ត្រូវចាប់ផ្តើមដោយ eyJ (ជា anon public មិនមែន service_role)');
-  scriptUrl=url;anonKey=key;
+  if(!url.startsWith('https://script.google.com/')||!url.includes('/exec')){
+    err.textContent='URL មិនត្រឹមត្រូវ — ត្រូវតែបញ្ចប់ដោយ /exec';
+    err.style.display='block';return;
+  }
+  scriptUrl=url;
   localStorage.setItem(URL_KEY,url);
-  localStorage.setItem(ANON_KEY,key);
   startApp();
 });
 // ---------- ការចូល / ចុះឈ្មោះ ----------
@@ -2123,7 +1986,8 @@ let serverWarmed=false;
 function warmUpServer(){
   // ដាស់ Apps Script ឱ្យភ្ញាក់មុន (cold start ១-៤ វិនាទី) ខណៈអ្នកប្រើកំពុងវាយពាក្យសម្ងាត់
   if(serverWarmed||!scriptUrl)return;
-  serverWarmed=true; // Supabase គ្មាន cold start — មិនចាំបាច់ដាស់ទេ
+  serverWarmed=true;
+  try{fetch(scriptUrl+'?warmup=1').catch(()=>{});}catch(_){}
 }
 function showAuth(){
   warmUpServer();
@@ -2243,40 +2107,37 @@ function googleSignIn(){
   const msg=document.getElementById('authMsg');
   err.style.display='none';msg.style.display='none';
   const show=m=>{err.textContent=m;err.style.display='block';};
-  if(!scriptUrl||!anonKey){show('សូមភ្ជាប់ Supabase ជាមុនសិន (ម៉ឺនុយ ផ្សេងៗ → ភ្ជាប់ Supabase)');return;}
+  if(!scriptUrl){show('សូមភ្ជាប់ Google Sheets ជាមុនសិន (ម៉ឺនុយ ផ្សេងៗ → ភ្ជាប់ Google Sheets)');return;}
   if(GOOGLE_CLIENT_ID.indexOf('PASTE_YOUR')===0){
     show('មិនទាន់កំណត់ Google Client ID ទេ — សូមមើលជំហានក្នុង README-google-login.md');return;
   }
-  if(!(window.google&&google.accounts&&google.accounts.id)){
+  if(!(window.google&&google.accounts&&google.accounts.oauth2)){
     show('កំពុងផ្ទុក Google... សូមព្យាយាមម្តងទៀតបន្តិចទៀត (ត្រូវការអ៊ីនធឺណិត)');return;
   }
   if(!googleTokenClient){
-    // Supabase ត្រូវការ id_token (JWT) — ប្រើ Google Identity Services
-    googleTokenClient={requestAccessToken:()=>{
-      google.accounts.id.initialize({
-        client_id:GOOGLE_CLIENT_ID,
-        callback:resp=>gTokenCb({credential:resp&&resp.credential}),
-      });
-      google.accounts.id.prompt();
-    }};
-    const gTokenCb=async resp=>{
-        if(!resp||!resp.credential){show('ការចូលដោយ Google ត្រូវបានបោះបង់');return;}
+    googleTokenClient=google.accounts.oauth2.initTokenClient({
+      client_id:GOOGLE_CLIENT_ID,
+      scope:'openid email profile',
+      callback:async resp=>{
+        if(!resp||!resp.access_token){show('ការចូលដោយ Google ត្រូវបានបោះបង់');return;}
         msg.textContent='កំពុងផ្ទៀងផ្ទាត់ជាមួយ Google...';msg.style.display='block';
         try{
-          const d=await postToSheet({action:'googleLogin',idToken:resp.credential,withData:true,device:deviceName()});
+          // ផ្ញើ access token ទៅ server ឱ្យផ្ទៀងផ្ទាត់ដោយផ្ទាល់ជាមួយ Google (សុវត្ថិភាព)
+          const d=await postToSheet({action:'googleLogin',accessToken:resp.access_token,withData:true,device:deviceName()});
           authToken=d.token;currentUser=d.email;
           msg.style.display='none';
           enterApp(d.transactions);
         }catch(e){
           msg.style.display='none';
           const msgs={
-            'no_client_id':'សូមបើក Google provider ក្នុង Supabase → Authentication → Providers',
+            'no_client_id':'Server មិនទាន់កំណត់ Client ID ទេ — សូម update Apps Script និង deploy ថ្មី',
             'bad_token':'ការផ្ទៀងផ្ទាត់ Google បរាជ័យ — សូមព្យាយាមម្តងទៀត',
             'unverified':'អ៊ីមែល Google នេះមិនទាន់បានផ្ទៀងផ្ទាត់ទេ',
           };
           show(msgs[e.message]||('បរាជ័យ ('+e.message+')'));
         }
-    };
+      },
+    });
   }
   googleTokenClient.requestAccessToken();
 }
@@ -2641,7 +2502,6 @@ async function restoreAuth(sess){
   guestMode=false;
   authToken=sess.token;
   currentUser=sess.email||'';
-  sbRefresh=localStorage.getItem(SBREF_KEY)||'';
   cacheLoad(); // បង្ហាញទិន្នន័យចាស់ភ្លាម
   document.getElementById('authScreen').classList.remove('open');
   document.getElementById('setupScreen').style.display='none';
@@ -2976,7 +2836,7 @@ function renderBatchList(){
   batchItems.forEach((it,i)=>{
     const b=document.createElement('span');
     b.className='bchip';
-    b.innerHTML=`${CATEGORY_ICONS[it.category]||'📦'} ${esc(it.category)} · ${fm(it.amount)}${it.currency} <b title="ដកចេញ">✕</b>`;
+    b.innerHTML=`${ic(it.category,15)} ${esc(it.category)} · ${fm(it.amount)}${it.currency} <b title="ដកចេញ">✕</b>`;
     b.querySelector('b').addEventListener('click',()=>{
       batchItems.splice(i,1);
       renderBatchList();
@@ -3897,7 +3757,7 @@ function renderBudgetCard(){
     const col=spent>=lim?'#EF4444':(pct>=75?'#F59E0B':'#22C55E');
     rows+=`<div class="budrow">
       <div class="budtop">
-        <span>${CATEGORY_ICONS[c]||'📦'} ${esc(c)}</span>
+        <span>${ic(c,18)} ${esc(c)}</span>
         <span class="${spent>=lim?'over':''}">${fm(spent)} / ${fm(lim)}៛</span>
       </div>
       <div class="budbar"><div style="width:${pct}%;background:${col}"></div></div>
@@ -3930,7 +3790,7 @@ function openBudgetModal(){
   EXPENSE_CATEGORIES.forEach(c=>{
     const row=document.createElement('div');
     row.className='budsetrow';
-    row.innerHTML=`<span>${CATEGORY_ICONS[c]||'📦'} ${esc(c)}</span>
+    row.innerHTML=`<span>${ic(c,18)} ${esc(c)}</span>
       <input type="text" inputmode="numeric" data-cat="${esc(c)}"
         value="${b[c]>0?fm(b[c]).replace(/\.00$/,''):''}" placeholder="—">`;
     list.appendChild(row);
@@ -4010,7 +3870,7 @@ function renderRecurList(){
     const row=document.createElement('div');
     row.className='recuritem';
     row.innerHTML=`
-      <span>${CATEGORY_ICONS[r.category]||'📦'}</span>
+      <span>${ic(r.category,18)}</span>
       <div class="rmain">${esc(r.note||r.category)}<br>
         <small style="color:var(--muted)">${r.type==='income'?'ចំណូល':'ចំណាយ'} ·
         ${fm(r.amount)}${r.currency} · ថ្ងៃទី ${r.day}</small></div>
